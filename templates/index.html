@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Рецепты{% endblock %}
+{% block content %}
+    <main class="main container">
+        {% include "menu.html" %}
+    {% for recipe in page %}
+        {% include "recipe_item.html" with recipe=recipe %}
+    {% endfor %}
+    </main>
+
+{% endblock %}
