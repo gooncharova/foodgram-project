@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en">
-
+{% load static %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Регистрация</title>
-    <link rel="stylesheet" href="../../static/pages/form.css">
+    <link rel="stylesheet" href="{% static 'pages/form.css' %}">
 </head>
 
 <body class="body">
@@ -30,7 +30,12 @@
             <h1 class="main__title">Регистрация</h1>
         </div>
         <div class="form-container">
-            <form class="form">
+            <form class="form" method="post" action="{% url 'signup' %}">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <li>{{ form.non_field_errors }}</li>
+                {% endif %}
                 <div class="form__group">
                     <label for="id_first_name" class="form__label">Имя</label>
                     <div class="form__field-group">
@@ -42,8 +47,13 @@
                     <label for="id_username" class="form__label">Имя пользователя</label>
                     <div class="form__field-group">
                         <input type="text" name="username" id="id_username" class="form__input">
-                        <span class="form__error">Имя пользователя и пароль не совпадают. Введите правильные данные.
-                        </span>
+                        {% if form.username.errors %}
+                            {% for error in form.username.errors %}
+                                <span class="form__error">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                        <!-- <span class="form__error">Имя пользователя и пароль не совпадают. Введите правильные данные.
+                        </span> -->
                     </div>
                 </div>
                 <div class="form__group">

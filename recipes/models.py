@@ -6,10 +6,10 @@ User = get_user_model()
 
 class Ingredient(models.Model):
     title = models.CharField(max_length=100)
-    unit = models.IntegerField()
+    unit = models.CharField(max_length=64)
 
     def __str__(self):
-        return self.name
+        return self.title
 
 
 class Tag(models.Model):
@@ -32,7 +32,7 @@ class Recipe(models.Model):
     image = models.ImageField(upload_to="recipe/")
     text = models.TextField()
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
-    ingredient = models.ForeignKey(
+    ingredients = models.ForeignKey(
         Ingredient, on_delete=models.CASCADE, related_name='recipe_ingredient', blank=True, null=True
     )
     tag = models.ForeignKey(
@@ -40,11 +40,11 @@ class Recipe(models.Model):
     cook_time = models.IntegerField()
 
     def __str__(self):
-        return self.text
+        return self.title
 
 
 class Amount(models.Model):
-    unit = models.IntegerField()
+    amount = models.IntegerField()
     ingredient = models.ForeignKey(
         Ingredient, on_delete=models.CASCADE, related_name='ingredient'
     )

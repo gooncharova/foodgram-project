@@ -3,7 +3,13 @@ from django.contrib import admin
 from .models import Amount, Follow, Ingredient, Recipe, Tag
 
 
+class AmountInLine(admin.TabularInline):
+    model = Amount
+    extra = 1
+
+
 class RecipeAdmin(admin.ModelAdmin):
+    inlines = (AmountInLine, )
     list_display = ('pk', 'title', 'author', )
     # 'text', 'pub_date',
     # 'image', 'ingredient', 'tag', 'cook_time')
@@ -13,7 +19,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'title', 'unit')
+    list_display = ('title', 'unit')
     list_filter = ('title',)
     empty_value_display = '-пусто-'
 
@@ -25,7 +31,7 @@ class TagAdmin(admin.ModelAdmin):
 
 
 class AmountAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'unit', 'ingredient', 'recipe', )
+    list_display = ('amount', 'ingredient', 'recipe', )
     list_filter = ('ingredient', 'recipe', )
     empty_value_display = '-пусто-'
 
