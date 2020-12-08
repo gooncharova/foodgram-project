@@ -7,37 +7,20 @@
             content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <title>{% block title %}{% endblock %} | Продуктовый помощник </title>
+        <link rel="shortcut icon" href="../static/images/favicon.png" type="image/x-icon">
         <!-- Загрузка статики -->
         {% load static %}
-        <link rel="stylesheet" href="../static/pages/index.css">
+        
     </head>
 
     <body class="body">
-        
-        {% load static %}
-        <script src="../static/js/components/MainCards.js"></script>
 
-        <script src="../static/js/components/Purchases.js"></script>
-        <script src="../static/js/components/Favorites.js"></script>
-    
-        <script src="../static/js/config/config.js"></script>
-        <script src="../static/js/components/CardList.js"></script>
-        <script src="../static/js/components/Header.js"></script>
-    
-        <script src="../static/js/api/Api.js"></script>
-        <script src="../static/indexAuth.js"></script>
-    
-        <!-- <header class="header"> -->
-            <!-- {% include "nav.html" %} -->
-        <!-- </header> -->
 
 
     <main class="main container">
-        <div class="main__header">
             {% block content %}
             <!-- Содержимое страницы -->
             {% endblock content %}
-        </div>
     </main>
     {% include "footer.html" %}
     </body>

@@ -44,7 +44,7 @@ def new_recipe(request):
             new_recipe.save()
             return redirect('index')
     form = RecipeForm()
-    return render(request, 'new_recipe.html', {'form': form})
+    return render(request, 'recipe_form.html', {'form': form})
 
 
 @login_required

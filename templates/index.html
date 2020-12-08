@@ -1,11 +1,29 @@
 {% extends "base.html" %}
 {% block title %}Рецепты{% endblock %}
 {% block content %}
-    <main class="main container">
-        {% include "menu.html" %}
-    {% for recipe in page %}
-        {% include "recipe_item.html" with recipe=recipe %}
-    {% endfor %}
+    {% include 'nav.html' with index=True %}
+    <link rel="stylesheet" href="../static/pages/index.css">
+        <div class="main__header">
+            <h1 class="main__title">Рецепты</h1>
+            {% include "tags.html" %}
+        </div>
+    {% include "recipe_item.html" %}
     </main>
+    {% if page.has_other_pages %}
+            {% include "paginator.html" with items=page paginator=paginator%}
+    {% endif %}
+    <script src="../static/js/components/MainCards.js"></script>
 
+    <script src="../static/js/components/Purchases.js"></script>
+    <script src="../static/js/components/Favorites.js"></script>
+  
+    <script src="../static/js/config/config.js"></script>
+    <script src="../static/js/components/CardList.js"></script>
+    <script src="../static/js/components/Header.js"></script>
+  
+    <script src="../static/js/api/Api.js"></script>
+    <script src="../static/indexAuth.js"></script>
+    
+
+    
 {% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Вы вышли из системы{% endblock %}
+
+{% block content %}
+    {% load static %}
+    {% include 'nav.html' %}
+    <link rel="stylesheet" href="{% static 'pages/form.css' %}">
+    <main class="main container">
+    <div class="main__header">
+        <h1 class="main__title">Вы вышли из своей учетной записи. Ждем вас снова!</h1>
+    </div>
+    </main>
+{% endblock %}
