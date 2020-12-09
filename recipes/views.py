@@ -28,10 +28,9 @@ def profile(request, username):
                                             'paginator': paginator})
 
 
-def recipe_view(request, username, recipe_id):
-    author = get_object_or_404(User, username=username)
-    recipe = get_object_or_404(Recipe, author=author, pk=recipe_id)
-    return render(request, 'recipe.html', {'author': author, 'recipe': recipe})
+def recipe_view(request, recipe_id):
+    recipe = get_object_or_404(Recipe, pk=recipe_id)
+    return render(request, 'recipe.html', {'recipe': recipe})
 
 
 @login_required
@@ -72,6 +71,11 @@ def recipe_delete(request, username, recipe_id):
         return redirect("post", username=recipe.author, pk=recipe_id)
     recipe.delete()
     return redirect("profile", username=author.username)
+
+
+@login_required
+def subscriptions(request):
+    return render(request, 'subscriptions.html')
 
 
 @login_required

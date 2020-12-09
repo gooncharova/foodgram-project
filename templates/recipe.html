@@ -1,47 +1,26 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Французские тосты</title>
-    <link rel="stylesheet" href="../static/pages/single.css">
-</head>
-<body class="body">
-<header class="header">
-    <nav class="nav">
-        <div class="nav__container container">
-            <ul class="nav__items list">
-                <li class="nav__item nav__item_active"><a href="#" class="nav__link link">Рецепты</a></li>
-                <li class="nav__item"><a href="#" class="nav__link link">Мои подписки</a></li>
-                <li class="nav__item"><a href="#" class="nav__link link">Создать рецепт</a></li>
-                <li class="nav__item"><a href="#" class="nav__link link">Избранное</a></li>
-                <li class="nav__item"><a href="#" class="nav__link link">Список покупок</a><span class="badge badge_style_blue nav__badge" id="counter">4</span></li>
-
-            </ul>
-            <ul class="nav__items list">
-                <li class="nav__item"><a href="#" class="nav__link link">Изменить пароль</a></li>
-                <li class="nav__item"><a href="#" class="nav__link link">Выход</a></li>
-            </ul>
-        </div>
-    </nav>
-</header>
+{% extends "base.html" %}
+{% block title %}{{ recipe.title }}{% endblock %}
+{% block content %}
+{% load static %}
+{% block static %}
+    <link rel="stylesheet" href="{% static 'pages/index.css' %}">
+{% endblock %}
+{% include 'nav.html' with index=True %}
+{% csrf_token %}
     <main class="main container">
-        <div class="single-card" data-id="371" data-author="12">
-            <img src="../static/images/testCardImg.png" alt="какой-то текст" class="single-card__image">
+        
+        <div class="single-card" data-id={{ recipe.id }} data-author={{ recipe.author.id }>
+            <img src="{{ recipe.image.url }}" alt="какой-то текст" class="single-card__image">
             <div class="single-card__info">
                 <div class="single-card__header-info">
-                    <h1 class="single-card__title">Французские тосты</h1>
+                    <h1 class="single-card__title">{{ recipe.title }}</h1>
                     <div class="single-card__favorite">
                         <button class="button button_style_none" name="favorites" data-out><span class="icon-favorite icon-favorite_big"></span></button>
                         <div class="single-card__favorite-tooltip tooltip">Добавить в избранное</div>
                     </div>
                 </div>
                 <ul class="single-card__items">
-                    <li class="single-card__item"><span class="badge badge_style_green">Обед</span></li>
-                    <li class="single-card__item"><span class="badge badge_style_orange">Завтрак</span></li>
-                    <li class="single-card__item"><span class="badge badge_style_purple">Ужин</span></li>
+                        {% include "tags.html" %}
                 </ul>
                 <div class="single-card__items single-card__items_column">
                     <p class="single-card__text"><span class="icon-time"></span> 20 мин.</p>
@@ -74,15 +53,6 @@
             </div>
         </div>
     </main>
-    <footer class="footer">
-        <div class="footer__container container">
-            <a href="#" class="footer__brand link">Продуктовый помощник</a>
-            <ul class="footer__items">
-                <li class="footer__item"><a href="#" class="footer__link link">Об авторе </a></li>
-                <li class="footer__item"><a href="#" class="footer__link link">Технологии</a></li>
-            </ul>
-        </div>
-    </footer>
 <script src="../static/js/components/Purchases.js"></script>
 <script src="../static/js/components/Favorites.js"></script>
 <script src="../static/js/components/Subscribe.js"></script>
@@ -94,5 +64,4 @@
 
 <script src="../static/js/api/Api.js"></script>
 <script src="../static/singlePage.js"></script>
-</body>
-</html>
+{% endblock %}

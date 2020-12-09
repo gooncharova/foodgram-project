@@ -7,21 +7,20 @@
             content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <title>{% block title %}{% endblock %} | Продуктовый помощник </title>
-        <link rel="shortcut icon" href="../static/images/favicon.png" type="image/x-icon">
+        <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico'/>
+        <!-- <link rel="icon" href="data:;base64,=/favicon.ico">
+        <link rel="icon" href="/favicon.ico" type="image/x-icon">
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon"> -->
         <!-- Загрузка статики -->
         {% load static %}
         
     </head>
 
-    <body class="body">
-
-
-
-    <main class="main container">
+        
+    
             {% block content %}
             <!-- Содержимое страницы -->
             {% endblock content %}
-    </main>
     {% include "footer.html" %}
     </body>
 
