@@ -10,7 +10,11 @@
             {% include "tags.html" %}
             </ul>
         </div>
+        <div class="card-list">
+    {% for recipe in page %}
     {% include "recipe_item.html" %}
+        {% endfor %}
+        </div>
     {% if page.has_other_pages %}
             {% include "paginator.html" with items=page paginator=paginator%}
     {% endif %}

@@ -12,30 +12,35 @@
             </ul>
 
         </div>
-<!--        <p style="padding: 0 0 2em 0;"><a class="button button_style_light-blue" href="#">Подписаться на автора</a></p>-->
-                                <!-- {% if request.user != author %}
-                                    <div class="author-subscribe" data-author="323">
-                                        <p style="padding: 0 0 2em 0;"><button class="button button_style_light-blue button_size_subscribe" name="subscribe" data-out>Подписаться на автора</button></p>
-                                    </div>
-                                    {% if following %}
-                                        <a class="btn btn-lg btn-light" 
-                                        href="{% url 'profile_unfollow' author.username %}" role="button"> 
-                                        Отписаться 
-                                        </a> 
-                                    {% else %}
-                                        <a class="btn btn-lg btn-primary" 
-                                        href="{% url 'profile_follow' author.username %}" role="button">
-                                        Подписаться 
-                                        </a>
-                                    {% endif %}
-                                {% endif %} -->
-        <div class="author-subscribe" data-author="323">
-            <p style="padding: 0 0 2em 0;"><button class="button button_style_light-blue button_size_subscribe" name="subscribe" data-out>Подписаться на автора</button></p>
+
+        {% csrf_token %}
+        {% if request.user != author %}
+        
+        {% if following %}
+        <div class="author-subscribe" data-author="{{ author.id }}"></div>
+            <p style="padding: 0 0 2em 0;"><button class="button button_style_light-blue button_size_subscribe" name="subscribe" >Отписаться</button></p>
+        {% else %}
+        <div class="author-subscribe" data-author="{{ author.id }}"></div>
+          <p style="padding: 0 0 2em 0;">
+            <button class="button button_style_light-blue button_size_auto" name="subscribe" data-out>Подписаться</button></p>
+        {% endif %}
         </div>
+        {% endif %}
+        
+        <div class="card-list">
+        {% for recipe in page %}
         {% include "recipe_item.html" %}
+        {% empty %}
+        {% if request.user != author %}
+          <h3>Этот автор еще не создал ни одного рецепта.</h3>
+        {% else %}
+          <h3>Вы еще не создали ни одного рецепта, скорее исправляйте это.</a></h3>
+        {% endif %}
         {% if page.has_other_pages %}
             {% include "paginator.html" with items=page paginator=paginator%}
         {% endif %}
+        {% endfor %}
+        </div>
     <script src="../static/js/components/MainCards.js"></script>
 
     <script src="../static/js/components/Purchases.js"></script>

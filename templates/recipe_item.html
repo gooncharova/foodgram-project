@@ -1,5 +1,4 @@
-<div class="card-list">
-    {% for recipe in page %}
+
     <div class="card" data-id={{ recipe.id }}>
         <a href="{% url 'recipe' recipe.id %}" class="link" target="_self"><img src="{{ recipe.image.url }}" alt="Какой-то текст" class="card__image"></a>
         <div class="card__body">
@@ -10,7 +9,7 @@
                 <li class="card__item"><span class="badge badge_style_purple">Ужин</span></li>
             </ul>
             <div class="card__items card__items_column">
-                <p class="card__text"><span class="icon-time"></span> {{ recipe.cook_time }} мин.</p>
+                <p class="card__text"><span class="icon-time"></span>{{ recipe.cook_time }} мин.</p>
                 <p class="card__text"><span class="icon-user"></span> <a href="{% url 'profile' recipe.author.username %}" style="color: black">{{ recipe.author.get_full_name }}</a></p>
             </div>
         </div>
@@ -21,5 +20,3 @@
                     class="icon-favorite"></span></button>
         </div>
     </div>
-    {% endfor %}
-</div>

@@ -1,10 +1,13 @@
 # from django.conf import settings
+import json
+
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import RecipeForm
-from .models import Recipe, User, Follow
+from .models import Follow, Recipe, User
 
 
 def index(request):
@@ -58,8 +61,10 @@ def recipe_edit(request, username, recipe_id):
         if form.is_valid():
             recipe = form.save(commit=False)
             recipe.save()
-            return redirect('recipe', username=recipe.author, recipe_id=recipe_id)
-    return render(request, 'formChangeRecipe.html', {'form': form, 'recipe': recipe,
+            return redirect('recipe', username=recipe.author,
+                            recipe_id=recipe_id)
+    return render(request, 'formChangeRecipe.html', {'form': form,
+                                                     'recipe': recipe,
                                                      'edit': True})
 
 
@@ -68,25 +73,39 @@ def recipe_delete(request, username, recipe_id):
     author = get_object_or_404(User, username=username)
     recipe = Recipe.objects.filter(author=author, pk=recipe_id)
     if request.user != author:
-        return redirect("post", username=recipe.author, pk=recipe_id)
+        return redirect('post', username=recipe.author, pk=recipe_id)
     recipe.delete()
-    return redirect("profile", username=author.username)
+    return redirect('profile', username=author.username)
 
 
 @login_required
 def subscriptions(request):
-    return render(request, 'subscriptions.html')
+    following_list = request.user.follower.all()
+    paginator = Paginator(following_list, 3)
+    page_number = request.GET.get('page')
+    page = paginator.get_page(page_number)
+    context = {
+        'page': page,
+        'paginator': paginator,
+    }
+    return render(request, 'subscriptions.html', context)
 
 
 @login_required
-def profile_follow(request, username):
-    author = get_object_or_404(User, username=username)
-    follow = Follow.objects.filter(
-        user=request.user, author=author).exists()
-    if request.user != author and follow is False:
-        follows = Follow.objects.create(user=request.user, author=author)
-        follows.save()
-    return redirect("subscribes")
+def profile_follow(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        profile = get_object_or_404(User, id=data['id'])
+        following = Follow.objects.filter(
+            user=request.user).filter(author=profile)
+        if request.user != profile:
+            if not following:
+                Follow.objects.create(user=request.user, author=profile)
+                return JsonResponse({'success': True})
+            elif following:
+                return redirect('index')
+        else:
+            return redirect('index')
 
 
 @login_required
@@ -94,7 +113,17 @@ def profile_unfollow(request, username):
     author = get_object_or_404(User, username=username)
     following = Follow.objects.filter(user=request.user, author=author)
     following.delete()
-    return redirect("subscribes")
+    return redirect('subscriptions')
+
+
+@login_required
+def favorites(request):
+    return render(request, 'favorites.html')
+
+
+@login_required
+def shopping_list(request):
+    return render(request, 'shopping_list.html')
 
 
 def page_not_found(request, exception):
