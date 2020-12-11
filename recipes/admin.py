@@ -10,6 +10,7 @@ class AmountInLine(admin.TabularInline):
 
 class RecipeAdmin(admin.ModelAdmin):
     inlines = (AmountInLine, )
+    filter_horizontal = ('tag', )
     list_display = ('pk', 'title', 'author', )
     # 'text', 'pub_date',
     # 'image', 'ingredient', 'tag', 'cook_time')

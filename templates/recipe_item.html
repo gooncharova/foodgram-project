@@ -1,12 +1,19 @@
-
     <div class="card" data-id={{ recipe.id }}>
         <a href="{% url 'recipe' recipe.id %}" class="link" target="_self"><img src="{{ recipe.image.url }}" alt="Какой-то текст" class="card__image"></a>
         <div class="card__body">
             <a class="card__title link" href="{% url 'recipe' recipe.id %}" target="_self">{{ recipe.title }}</a>
             <ul class="card__items">
-                <li class="card__item"><span class="badge badge_style_green">Обед</span></li>
-                <li class="card__item"><span class="badge badge_style_orange">Завтрак</span></li>
-                <li class="card__item"><span class="badge badge_style_purple">Ужин</span></li>
+                {% for tag in recipe.tag.all %}
+                  {% if tag.slug == 'breakfast' %}
+                    <li class="card__item"><span class="badge badge_style_orange">Завтрак</span></li>
+                  {% elif tag.slug == 'lunch' %}
+                    <li class="card__item"><span class="badge badge_style_green">Обед</span></li>
+                  {% elif tag.slug == 'dinner' %}
+                    <li class="card__item"><span class="badge badge_style_purple">Ужин</span></li>
+                  {% else %}
+                    <li class="card__item"><span class="badge badge_style_grey">{{ tag.title }}</span></li>
+                  {% endif %}
+                {% endfor %}
             </ul>
             <div class="card__items card__items_column">
                 <p class="card__text"><span class="icon-time"></span>{{ recipe.cook_time }} мин.</p>

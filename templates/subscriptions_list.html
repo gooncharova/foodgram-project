@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Мои подписки{% endblock %}
+{% block content %}
+{% load static user_filters %}
+{% include 'nav.html' with subs=True %}
+<main class="main container">
+    <link rel="stylesheet" href="{% static 'pages/index.css' %}">
+        <div class="main__header">
+        <h1 class="main__title">Мои подписки</h1>
+        </div>
+    <div class="card-list">
+        {% for follower in page %}
+        {% include 'subscription_item.html' with author=follower.author %}
+        {% empty %}
+        <h2> У Вас еще нет подписок. </h2>
+        {% endfor %}
+        </div>
+        {% if page.has_other_pages %}
+        {% include 'paginator.html' with items=page paginator=paginator %}
+        {% endif %}
+</main>
+<script src="../static/js/config/config.js"></script>
+<script src="../static/js/components/MainCards.js"></script>
+<script src="../static/js/components/MyFollow.js"></script>
+<script src="../static/js/components/Subscribe.js"></script>
+<script src="../static/js/components/Header.js"></script>
+<script src="../static/js/api/Api.js"></script>
+<script src="../static/myFollow.js"></script>
+
+{% endblock %}

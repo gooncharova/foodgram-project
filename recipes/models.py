@@ -15,17 +15,13 @@ class Ingredient(models.Model):
 class Tag(models.Model):
     title = models.CharField(max_length=15)
     slug = models.SlugField()
-    checkbox_style = models.CharField(max_length=15)
+    checkbox_style = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.name
+        return self.title
 
 
 class Recipe(models.Model):
-
-    class Meta:
-        ordering = ['-pub_date']
-
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="recipe_author")
     title = models.CharField(max_length=100)
@@ -33,10 +29,8 @@ class Recipe(models.Model):
     text = models.TextField()
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
     ingredients = models.ForeignKey(
-        Ingredient, on_delete=models.CASCADE, related_name='recipe_ingredient', blank=True, null=True
-    )
-    tag = models.ForeignKey(
-        Tag, on_delete=models.CASCADE, related_name='tag', blank=True, null=True)
+        Ingredient, on_delete=models.CASCADE, related_name='recipe_ingredient')
+    tag = models.ManyToManyField(Tag, related_name='tag')
     cook_time = models.IntegerField()
 
     def __str__(self):

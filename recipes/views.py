@@ -7,16 +7,18 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import RecipeForm
-from .models import Follow, Recipe, User
+from .models import Follow, Recipe, User, Tag
 
 
 def index(request):
     recipe_list = Recipe.objects.order_by('-pub_date').all()
-    paginator = Paginator(recipe_list, 10)
+    tags = Tag.objects.all()
+    paginator = Paginator(recipe_list, 6)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     return render(request, 'index.html', {'page': page,
-                                          'paginator': paginator, })
+                                          'paginator': paginator, 
+                                          'tags': tags})
     # 'cache_timeout':
     # settings.CACHE_TIME})
 
@@ -24,7 +26,7 @@ def index(request):
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     recipe_author = author.recipe_author.order_by('-pub_date')
-    paginator = Paginator(recipe_author, 10)
+    paginator = Paginator(recipe_author, 6)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     return render(request, 'profile.html', {'author': author, 'page': page,
@@ -88,7 +90,7 @@ def subscriptions(request):
         'page': page,
         'paginator': paginator,
     }
-    return render(request, 'subscriptions.html', context)
+    return render(request, 'subscriptions_list.html', context)
 
 
 @login_required
@@ -118,7 +120,8 @@ def profile_unfollow(request, username):
 
 @login_required
 def favorites(request):
-    return render(request, 'favorites.html')
+    tags = Tag.objects.all()
+    return render(request, 'favorites.html', {'tags': tags})
 
 
 @login_required
