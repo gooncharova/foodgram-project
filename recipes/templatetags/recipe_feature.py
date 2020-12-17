@@ -1,5 +1,7 @@
 from django import template
 
+from recipes.models import Follow
+
 register = template.Library()
 
 
@@ -20,3 +22,15 @@ def get_filter_link(request, tag):
         new_request.appendlist('filters', tag.slug)
 
     return new_request.urlencode()
+
+
+@register.filter(name='is_following')
+def is_following(author, user):
+    return Follow.objects.filter(user=user, author=author).exists()
+
+
+@register.simple_tag()
+def url_replace(request, page, new_page):
+    query = request.GET.copy()
+    query[page] = new_page
+    return query.urlencode()

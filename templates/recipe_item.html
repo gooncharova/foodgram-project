@@ -1,4 +1,5 @@
     <div class="card" data-id={{ recipe.id }}>
+      {% csrf_token %} 
         <a href="{% url 'recipe' recipe.id %}" class="link" target="_self"><img src="{{ recipe.image.url }}" alt="Какой-то текст" class="card__image"></a>
         <div class="card__body">
             <a class="card__title link" href="{% url 'recipe' recipe.id %}" target="_self">{{ recipe.title }}</a>
@@ -23,7 +24,10 @@
         <div class="card__footer">
             <button class="button button_style_light-blue" name="purchases" data-out><span
                     class="icon-plus button__icon"></span>Добавить в покупки</button>
-            <button class="button button_style_none" name="favorites" data-out><span
-                    class="icon-favorite"></span></button>
+                    {% if request.user in recipe.favorite.all %}
+                    <button class="button button_style_none" name="favorites"><span class="icon-favorite icon-favorite_active"></span></button>
+                    {% else %}
+                    <button class="button button_style_none" name="favorites" data-out><span class="icon-favorite"></span></button>
+                    {% endif %}
         </div>
     </div>

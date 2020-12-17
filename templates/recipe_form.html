@@ -3,14 +3,19 @@
 {% block content %}
 {% csrf_token %}
     {% load static user_filters %}
+    {% if edit %}
+    {% include 'nav.html' %}
+    {% else %}
     {% include 'nav.html' with recipe_form=True %}
+    {% endif %}
     <main class="main container">
-    <link rel="stylesheet" href="../static/pages/form.css">
+    <link rel="stylesheet" href="{% static 'pages/form.css' %}">
     <div class="main__header">
+        {% if edit %}
+        <h1 class="main__title">Редактирование рецепта</h1>
+        {% else %}
         <h1 class="main__title">Создание рецепта</h1>
-        <ul class="tags">
-            {% include "tags.html" %}
-        </ul>
+        {% endif %}
     </div>
     <div class="form-container">
         <form class="form" method="post" enctype="multipart/form-data">
@@ -78,20 +83,24 @@
             <div class="form__group">
                 <span class="form__label">Загрузить фото</span>
                 <div class="form__field-group">
-                    <input type="file" name="file" id="id_file">
+                    <input type="file" name="file" id="id_file"
+                    {% if edit %} value="{{ recipe.image }}"{% endif %}>
                     <span class="form__error"></span>
                 </div>
             </div>
             <div class="form__footer">
+                {% if edit %}
+                <button class="button button_style_blue">Редактировать рецепт</button>
+                {% else %}
                 <button class="button button_style_blue">Создать рецепт</button>
+                {% endif %}
             </div>
         </form>
     </div>
 </main>
-
-<script src="../static/js/config/config.js"></script>
-<script src="../static/js/components/Header.js"></script>
-<script src="../static/js/utils/debouncing.js"></script>
-<script src="../static/js/api/Api.js"></script>
-<script src="../static/formRecipe.js"></script>
+<script src="{% static 'js/config/config.js' %}"></script>
+<script src="{% static 'js/components/Header.js' %}"></script>
+<script src="{% static 'js/utils/debouncing.js' %}"></script>
+<script src="{% static 'js/api/Api.js' %}"></script>
+<script src="{% static 'formRecipe.js' %}"></script>
 {% endblock %}

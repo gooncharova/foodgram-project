@@ -1,32 +1,35 @@
 {% extends "base.html" %}
 {% block title %}Избранное{% endblock %}
 {% block content %}
+{% load static user_filters %}
 {% include 'nav.html' with fav=True %}
-    <link rel="stylesheet" href="../static/pages/index.css">
+{% csrf_token %}
+    <link rel="stylesheet" href="{% static 'pages/index.css' %}">
     <main class="main container">
         <div class="main__header">
             <h1 class="main__title">Избранное</h1>
             <ul class="tags">
                 {% include "tags.html" %}
             </ul>
-
-            {% for recipe in page %}
+        </div>
+            <div class="card-list">
+            {% for recipe in recipes %}
             {% include "recipe_item.html" %}
-                {% endfor %}
+            {% empty %}
+            <h2> У Вас нет избранных рецептов. </h2>
+            {% endfor %}
                 </div>
             {% if page.has_other_pages %}
                     {% include "paginator.html" with items=page paginator=paginator%}
             {% endif %}
+        </div>
     </main>
-<script src="../static/js/components/MainCards.js"></script>
-
-<script src="../static/js/components/Purchases.js"></script>
-<script src="../static/js/components/Favorites.js"></script>
-
-<script src="../static/js/config/config.js"></script>
-<script src="../static/js/components/CardList.js"></script>
-<script src="../static/js/components/Header.js"></script>
-
-<script src="../static/js/api/Api.js"></script>
-<script src="../static/favorite.js"></script>
+    <script src="{% static 'js/components/MainCards.js' %}"></script>
+    <script src="{% static 'js/components/Purchases.js' %}"></script>
+    <script src="{% static 'js/components/Favorites.js' %}"></script>
+    <script src="{% static 'js/config/config.js' %}"></script>
+    <script src="{% static 'js/components/CardList.js' %}"></script>
+    <script src="{% static 'js/components/Header.js' %}"></script>
+    <script src="{% static 'js/api/Api.js' %}"></script>
+    <script src="{% static 'favorite.js' %}"></script>
 {% endblock %}

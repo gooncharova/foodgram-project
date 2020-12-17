@@ -32,6 +32,8 @@ class Recipe(models.Model):
         Ingredient, on_delete=models.CASCADE, related_name='recipe_ingredient')
     tag = models.ManyToManyField(Tag, related_name='tag')
     cook_time = models.IntegerField()
+    favorite = models.ManyToManyField(
+        User, related_name='favorite', blank=True)
 
     def __str__(self):
         return self.title
@@ -50,3 +52,15 @@ class Follow(models.Model):
         User, on_delete=models.CASCADE, related_name="follower")
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="following")
+
+
+class ShopList(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='buyer'
+    )
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, related_name='recipe_to_shop'
+    )
+
+    def __str__(self):
+        return self.recipe

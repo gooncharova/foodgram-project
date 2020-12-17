@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Рецепты{% endblock %}
+{% csrf_token %}
 {% block content %}
+{% load static user_filters %}
 {% include 'nav.html' with index=True %}
 <main class="main container">
-<link rel="stylesheet" href="../static/pages/index.css">
+    <link rel="stylesheet" href="{% static 'pages/index.css' %}">
         <div class="main__header">
             <h1 class="main__title">Рецепты</h1>
             <ul class="tags">
@@ -12,24 +14,22 @@
         </div>
         <div class="card-list">
     {% for recipe in page %}
-    {% include "recipe_item.html" %}
+    {% include "recipe_item.html" with recipe=recipe %}
         {% endfor %}
         </div>
     {% if page.has_other_pages %}
             {% include "paginator.html" with items=page paginator=paginator%}
     {% endif %}
 </main>
-    <script src="../static/js/components/MainCards.js"></script>
-
-    <script src="../static/js/components/Purchases.js"></script>
-    <script src="../static/js/components/Favorites.js"></script>
-  
-    <script src="../static/js/config/config.js"></script>
-    <script src="../static/js/components/CardList.js"></script>
-    <script src="../static/js/components/Header.js"></script>
-  
-    <script src="../static/js/api/Api.js"></script>
-    <script src="../static/indexAuth.js"></script>
+<script src="{% static 'js/config/config.js' %}"></script>
+<script src="{% static 'js/components/MainCards.js' %}"></script>
+<script src="{% static 'js/components/Favorites.js' %}"></script>
+<script src="{% static 'js/components/CardList.js' %}"></script>
+<script src="{% static 'js/components/Header.js' %}"></script>
+<script src="{% static 'js/components/Purchases.js' %}"></script>
+<script src="{% static 'js/api/Api.js' %}"></script>
+<script src="{% static 'indexAuth.js' %}"></script>
+<script src="{% static 'js/components/Subscribe.js' %}"></script>
     
 
     

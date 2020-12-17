@@ -12,9 +12,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 
-from dotenv import load_dotenv
-
 import environ
+from dotenv import load_dotenv
 
 load_dotenv()
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -35,11 +34,15 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
+# APPEND_SLASH = False
 # Application definition
 
 INSTALLED_APPS = [
+    'api',
     'recipes',
     'users',
+    'rest_framework',
+    'django_filters',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -116,7 +119,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
-LANGUAGE_CODE = 'ru-ru'
+LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'UTC'
 
@@ -125,7 +128,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
@@ -154,5 +156,9 @@ CACHE_TIME = 20
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+REST_FRAMEWORK = {
+        'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    }
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240

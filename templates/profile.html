@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Профиль пользователя{% endblock %}
 {% block content %}
-{% load static user_filters %}
-{% include 'nav.html' %}
+{% load static user_filters recipe_feature %}
+{% include 'nav.html' with index=True %}
+{% csrf_token %}
 <main class="main container">
     <link rel="stylesheet" href="{% static 'pages/index.css' %}">
         <div class="main__header">
@@ -12,20 +13,20 @@
             </ul>
 
         </div>
-
-        {% csrf_token %}
+        <!-- {% if request.user.is_authenticated %} -->
         {% if request.user != author %}
-        
-        {% if following %}
-        <div class="author-subscribe" data-author="{{ author.id }}"></div>
-            <p style="padding: 0 0 2em 0;"><button class="button button_style_light-blue button_size_subscribe" name="subscribe" >Отписаться</button></p>
+        <div class="author-subscribe" data-author="{{ author.id }}">
+        {% if author|is_following:request.user %}
+        <p style="padding: 0 0 2em 0;">
+            <button class="button button_style_light-blue button_size_auto" name="subscribe" >Отписаться от автора</button></p>
         {% else %}
-        <div class="author-subscribe" data-author="{{ author.id }}"></div>
-          <p style="padding: 0 0 2em 0;">
-            <button class="button button_style_light-blue button_size_auto" name="subscribe" data-out>Подписаться</button></p>
+        <p style="padding: 0 0 2em 0;">
+            <button class="button button_style_light-blue button_size_auto" name="subscribe" data-out>Подписаться на автора</button></p>
+        </div>
         {% endif %}
         </div>
         {% endif %}
+        <!-- {% endif %} -->
         
         <div class="card-list">
         {% for recipe in page %}
@@ -41,18 +42,15 @@
         {% endif %}
         {% endfor %}
         </div>
-    <script src="../static/js/components/MainCards.js"></script>
-
-    <script src="../static/js/components/Purchases.js"></script>
-    <script src="../static/js/components/Subscribe.js"></script>
-    <script src="../static/js/components/Favorites.js"></script>
-  
-    <script src="../static/js/config/config.js"></script>
-    <script src="../static/js/components/Header.js"></script>
-
-    <script src="../static/js/components/AuthorRecipe.js"></script>
-    <script src="../static/authorRecipe.js"></script>
-  
-    <script src="../static/js/api/Api.js"></script>
+        <script src="{% static 'js/config/config.js' %}"></script>
+        <script src="{% static 'js/components/MainCards.js' %}"></script>
+        <script src="{% static 'js/components/Purchases.js' %}"></script>
+        <script src="{% static 'js/components/Favorites.js' %}"></script>
+        <script src="{% static 'js/components/Subscribe.js' %}"></script>
+    
+        <script src="{% static 'js/components/AuthorRecipe.js' %}"></script>
+        <script src="{% static 'js/components/Header.js' %}"></script>
+        <script src="{% static 'js/api/Api.js' %}"></script>
+        <script src="{% static 'authorRecipe.js' %}"></script>
     </main>
 {% endblock %}
