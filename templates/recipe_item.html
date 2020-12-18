@@ -1,3 +1,4 @@
+{% load static recipe_feature %}    
     <div class="card" data-id={{ recipe.id }}>
       {% csrf_token %} 
         <a href="{% url 'recipe' recipe.id %}" class="link" target="_self"><img src="{{ recipe.image.url }}" alt="Какой-то текст" class="card__image"></a>
@@ -21,9 +22,16 @@
                 <p class="card__text"><span class="icon-user"></span> <a href="{% url 'profile' recipe.author.username %}" style="color: black">{{ recipe.author.get_full_name }}</a></p>
             </div>
         </div>
-        <div class="card__footer">
-            <button class="button button_style_light-blue" name="purchases" data-out><span
+          {% if request.user.is_authenticated %}
+          <div class="card__footer">
+            {% if recipe|shopping_recipe:request.user %}
+            <button class="button button_style_light-blue" name="purchases"><span
+                    class="icon-check button__icon"></span>Рецепт добавлен</button>
+          {% else %}
+            <button class="button button_style_blue" name="purchases" data-out><span
                     class="icon-plus button__icon"></span>Добавить в покупки</button>
+          {% endif %}
+          {% endif %}
                     {% if request.user in recipe.favorite.all %}
                     <button class="button button_style_none" name="favorites"><span class="icon-favorite icon-favorite_active"></span></button>
                     {% else %}

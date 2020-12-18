@@ -2,7 +2,7 @@
 {% block title %}Рецепты{% endblock %}
 {% csrf_token %}
 {% block content %}
-{% load static user_filters %}
+{% load static recipe_feature user_filters %}
 {% include 'nav.html' with index=True %}
 <main class="main container">
     <link rel="stylesheet" href="{% static 'pages/index.css' %}">

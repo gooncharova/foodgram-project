@@ -1,6 +1,6 @@
 from django import template
 
-from recipes.models import Follow
+from recipes.models import Follow, ShopList
 
 register = template.Library()
 
@@ -34,3 +34,13 @@ def url_replace(request, page, new_page):
     query = request.GET.copy()
     query[page] = new_page
     return query.urlencode()
+
+
+@register.filter(name='shopping_recipe')
+def shopping_recipe(recipe, user):
+    return ShopList.objects.filter(user=user, recipe=recipe).exists()
+
+
+@register.filter(name='shopping_count')
+def shopping_count(request, user_id):
+    return ShopList.objects.filter(user=user_id).count()

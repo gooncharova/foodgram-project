@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import RecipeForm
 # from .extras import get_all_tags, get_filters
-from .models import Follow, Recipe, Tag, User, ShopList
+from .models import Follow, Recipe, ShopList, Tag, User
 
 # from django.views.decorators.csrf import csrf_protect
 
@@ -29,7 +29,7 @@ def filtered_tags(request):
 def index(request):
     tags = filtered_tags(request)
     recipe_list = Recipe.objects.all().order_by(
-        "-pub_date").distinct().filter(tag__in=tags)
+        '-pub_date').distinct().filter(tag__in=tags)
     all_tags = Tag.objects.all()
     # return get_filters(self.request, qs)
     paginator = Paginator(recipe_list, 6)
@@ -148,7 +148,7 @@ def profile_unfollow(request, id):
 def favorites(request):
     tags = filtered_tags(request)
     recipe_list = Recipe.objects.filter(favorite=request.user).order_by(
-        "-pub_date").distinct().filter(tag__in=tags)
+        '-pub_date').distinct().filter(tag__in=tags)
     all_tags = Tag.objects.all()
     return render(request, 'favorites.html', {'tags': all_tags,
                                               'recipes': recipe_list})
@@ -158,7 +158,7 @@ def favorites(request):
 @login_required
 def add_favorites(request):
     data = json.loads(request.body)
-    recipe = Recipe.objects.get(id=data["id"])
+    recipe = Recipe.objects.get(id=data['id'])
     recipe.favorite.add(request.user)
     return JsonResponse({'id': request.POST.get('id')})
 
@@ -175,6 +175,37 @@ def remove_favorites(request, id):
 def shopping_list(request):
     shop_list = ShopList.objects.all()
     return render(request, 'shopping_list.html', {'shop_list': shop_list})
+
+
+@login_required
+def add_purchases(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        recipe = Recipe.objects.get(id=data['id'])
+        if not ShopList.objects.filter(user=request.user,
+                                       recipe=recipe).exists():
+            ShopList.objects.create(user=request.user, recipe=recipe)
+    return JsonResponse({'Success': True})
+
+
+@login_required
+def remove_purchases(request, id):
+    if request.method == 'DELETE':
+        recipe = get_object_or_404(Recipe, id=id)
+        purchase = ShopList.objects.get(user=request.user, recipe=recipe)
+        purchase.delete()
+        return JsonResponse({'all': 'done'})
+    elif request.method == 'GET':
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=id)
+        purchase = get_object_or_404(ShopList, user=user, recipe=recipe)
+        purchase.delete()
+        return redirect('shopping_list')
+
+
+@login_required
+def download_shopping_list(request):
+    pass
 
 
 def page_not_found(request, exception):

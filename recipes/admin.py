@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Amount, Follow, Ingredient, Recipe, Tag, ShopList
+from .models import Amount, Follow, Ingredient, Recipe, ShopList, Tag
 
 
 class AmountInLine(admin.TabularInline):
@@ -13,6 +13,7 @@ class RecipeAdmin(admin.ModelAdmin):
     # filter_horizontal = ('tag', 'ingredients',)
     list_display = ('pk', 'title', 'author', )
     ordering = ['title', ]
+    list_filter = ('title',)
     autocomplete_fields = ('ingredients',)
     empty_value_display = '-пусто-'
 
@@ -24,6 +25,7 @@ class RecipeAdmin(admin.ModelAdmin):
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('title', 'unit')
     ordering = ['title', ]
+    list_filter = ('title',)
     search_fields = ('title', )
     empty_value_display = '-пусто-'
 

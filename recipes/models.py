@@ -5,15 +5,16 @@ User = get_user_model()
 
 
 class Ingredient(models.Model):
-    title = models.CharField(max_length=100)
-    unit = models.CharField(max_length=64)
+    title = models.CharField(max_length=100,
+                             verbose_name='Название ингредиента')
+    unit = models.CharField(max_length=64, verbose_name='Единица измерения')
 
     def __str__(self):
         return self.title
 
 
 class Tag(models.Model):
-    title = models.CharField(max_length=15)
+    title = models.CharField(max_length=15, verbose_name='Наименование тега')
     slug = models.SlugField()
     checkbox_style = models.CharField(max_length=100)
 
@@ -22,45 +23,50 @@ class Tag(models.Model):
 
 
 class Recipe(models.Model):
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="recipe_author")
-    title = models.CharField(max_length=100)
-    image = models.ImageField(upload_to="recipe/")
-    text = models.TextField()
-    pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
-    ingredients = models.ForeignKey(
-        Ingredient, on_delete=models.CASCADE, related_name='recipe_ingredient')
-    tag = models.ManyToManyField(Tag, related_name='tag')
-    cook_time = models.IntegerField()
-    favorite = models.ManyToManyField(
-        User, related_name='favorite', blank=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE,
+                               related_name='recipe_author',
+                               verbose_name='Автор рецепта')
+    title = models.CharField(max_length=100, verbose_name='Название рецепта')
+    image = models.ImageField(upload_to='recipe/', verbose_name='Изображение')
+    text = models.TextField(verbose_name='Описание рецепта')
+    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+    ingredients = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
+                                    related_name='recipe_ingredient',
+                                    verbose_name='Ингредиенты')
+    tag = models.ManyToManyField(Tag, related_name='tag', verbose_name='Тег')
+    cook_time = models.IntegerField(verbose_name='Время приготовления')
+    favorite = models.ManyToManyField(User, related_name='favorite',
+                                      blank=True, verbose_name='Избранное')
 
     def __str__(self):
         return self.title
 
 
 class Amount(models.Model):
-    amount = models.IntegerField()
-    ingredient = models.ForeignKey(
-        Ingredient, on_delete=models.CASCADE, related_name='ingredient'
-    )
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    amount = models.IntegerField(verbose_name='Количество ингредиента')
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
+                                   related_name='ingredient',
+                                   verbose_name='Ингредиент')
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, verbose_name='Рецепт')
 
 
 class Follow(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="follower")
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="following")
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name='follower',
+                             verbose_name='Пользователь')
+    author = models.ForeignKey(User, on_delete=models.CASCADE,
+                               related_name='following',
+                               verbose_name='Подписан на')
 
 
 class ShopList(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='buyer'
-    )
-    recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='recipe_to_shop'
-    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name='buyer',
+                             verbose_name='Пользователь')
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
+                               related_name='recipe_to_shop',
+                               verbose_name='Рецепт')
 
-    def __str__(self):
-        return self.recipe
+    # def __str__(self):
+    #     return self.recipe

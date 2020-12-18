@@ -17,9 +17,9 @@
                 <div class="recipe recipe_reverse">
                     <img src="{{ obj.recipe.image.url }}" alt="{{ obj.recipe.title }}" class="recipe__image recipe__image_big">
                     <h3 class="recipe__title">{{ obj.recipe.title }}</h3>
-                    <p class="recipe__text"><span class="icon-time"></span> {{ obj.cook_time }} мин.</p>
+                    <p class="recipe__text"><span class="icon-time"></span> {{ obj.recipe.cook_time }} мин.</p>
                 </div>
-                <a href="#" class="shopping-list__button link">Удалить</a>
+                <a href={% url 'remove_purchase' obj.recipe.id %} class="shopping-list__button link">Удалить</a>
             </li>
             {% endfor %}
         </ul>
