@@ -19,6 +19,7 @@ urlpatterns = [
          name='download_shopping_list'),
     path('purchases', views.add_purchases, name='add_purchases'),
     path('purchases/<int:id>', views.remove_purchases, name='remove_purchase'),
+    path('ingredients', views.get_ingredients, name='get_ingredients'),
     path('<str:username>/', views.profile, name='profile'),
     path('<str:username>/<int:recipe_id>/delete/',
          views.recipe_delete, name='recipe_delete'),

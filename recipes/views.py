@@ -3,12 +3,13 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import RecipeForm
 # from .extras import get_all_tags, get_filters
-from .models import Follow, Recipe, ShopList, Tag, User
+from .models import Follow, Recipe, ShopList, Tag, User, Amount, Ingredient
+from django.contrib import messages
 
 # from django.views.decorators.csrf import csrf_protect
 
@@ -64,33 +65,61 @@ def recipe_view(request, recipe_id):
 
 @login_required
 def new_recipe(request):
-    if request.method == 'POST':
-        form = RecipeForm(request.POST)
+    if request.method != 'POST':
+        form = RecipeForm()
+    else:
+        form = RecipeForm(request.POST or None, files=request.FILES or None)
+        i = 1
+        ingredients = []
+        while request.POST.get(f'nameIngredient_{i}') is not None:
+            ingredients.append([request.POST.get(
+                f'nameIngredient_{i}'), request.POST.get(f'valueIngredient_{i}')])
+            i += 1
         if form.is_valid():
             new_recipe = form.save(commit=False)
             new_recipe.author = request.user
-            new_recipe.save()
+            new_recipe = form.save()
+            ingredients_dict = {}
+            for pair in ingredients:
+                name = str(pair[0])
+                val = int(pair[1])
+                if name not in ingredients_dict:
+                    ingredients_dict[name] = val
+                else:
+                    ingredients_dict[name] += val
+            for ingredient in ingredients_dict.keys():
+                if Ingredient.objects.filter(title=ingredient).exists():
+                    Amount.objects.create(recipe=new_recipe, ingredient=Ingredient.objects.get(
+                    title=ingredient), amount=ingredients_dict[ingredient])
+                else:
+                    messages.error(request, f"{ingredient} нету в базе. сорян. попробуй еще раз.")
+                    del ingredients_dict[ingredient]
+                    form = RecipeForm(data=request.POST, instance=new_recipe)
+                    print(ingredients_dict)
+                    context = {'recipe': new_recipe,
+                               "ingredients_dict": ingredients_dict,
+                               'form': form}
+                    return render(request, 'recipe_form.html', context)
             return redirect('index')
-    form = RecipeForm()
-    return render(request, 'recipe_form.html', {'form': form})
+    context = {'form': form}
+    return render(request, 'recipe_form.html', context)
 
 
 @login_required
 def recipe_edit(request, recipe_id):
-    recipe = get_object_or_404(Recipe, pk=recipe_id)
-    if request.user != recipe.author:
-        return redirect('recipe', recipe_id=recipe_id)
-    form = RecipeForm(request.POST or None,
-                      files=request.FILES or None, instance=recipe)
-    if request.method == 'POST':
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+    if recipe.author != request.user:
+        return HttpResponse('you cannot do it')
+    if request.method != 'POST':
+        form = RecipeForm(instance=recipe)
+    else:
+        form = RecipeForm(request.POST or None,
+                          files=request.FILES or None, instance=recipe)
         if form.is_valid():
-            recipe = form.save(commit=False)
-            recipe.save()
-            return redirect('recipe', username=recipe.author,
-                            recipe_id=recipe_id)
-    return render(request, 'recipe_form.html', {'form': form,
-                                                'recipe': recipe,
-                                                'edit': True})
+            form.save()
+            return redirect('recipe', id)
+    context = {'recipe': recipe, 'form': form, 'edit': True}
+    return render(request, 'recipe_form.html', context)
 
 
 @login_required
@@ -202,6 +231,18 @@ def remove_purchases(request, id):
         purchase.delete()
         return redirect('shopping_list')
 
+
+def get_ingredients(request):
+    keyword = request.GET.get('query')
+    if keyword:
+        ingredient_list = Ingredient.objects.filter(
+            title__contains=keyword).values_list()
+        data_noice = [{'title': x[1], 'dimension': x[2]}
+                      for x in ingredient_list]
+        return JsonResponse(data_noice, safe=False)
+    else:
+        ingredient_list = None
+        return JsonResponse({'Found': "None"})
 
 @login_required
 def download_shopping_list(request):

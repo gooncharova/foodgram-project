@@ -1,24 +1,22 @@
-{% load recipe_feature %}
 <nav class="pagination" aria-label="Search results pages">
     <ul class="pagination__container">
         {% if items.has_previous %}
-        <li class="pagination__item"><a class="pagination__link link" href="?{% url_replace request 'page' page_obj.previous_page_number %}">
-            <span class="icon-left"></span></a>
+        <li class="pagination__item"><a class="pagination__link link" href="??page={{ items.previous_page_number }}">
+            <span class="icon-left"></span></a></li>
         {% else %}
-            <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;Предыдущая</a></li>
+           <li class="pagination__item"><a class="pagination__link link" href="#"><span class="icon-left"></span></a></li>
         {% endif %}
         {% for i in paginator.page_range %}
             {% if items.number == i %}
-                <li class="page-item active"><span class="page-link">{{ i }} <span class="sr-only">(текущая)</span></span></li>
+                <li class="pagination__item pagination__item_active"><a class="pagination__link link" href="#">{{ i }}</a></li>
             {% else %}
-                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                <li class="pagination__item"><a class="pagination__link link" href="?page={{ i }}">{{ i }}</a></li>
             {% endif %}
         {% endfor %}
         {% if items.has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{ items.next_page_number }}">Следующая &raquo;</a></li>
+            <li class="pagination__item"><a class="pagination__link link" href="?page={{ items.next_page_number }}"><span class="icon-right"></span></a></li>
         {% else %}
-            <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">Следующая
-            &raquo;</a></li>
+            <li class="pagination__item"><a class="pagination__link link" href="#"><span class="icon-right"></span></a></li>
         {% endif %}
     </ul>
 </nav>

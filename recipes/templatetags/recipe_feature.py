@@ -29,11 +29,11 @@ def is_following(author, user):
     return Follow.objects.filter(user=user, author=author).exists()
 
 
-@register.simple_tag()
-def url_replace(request, page, new_page):
-    query = request.GET.copy()
-    query[page] = new_page
-    return query.urlencode()
+# @register.simple_tag()
+# def url_replace(request, page, new_page):
+#     query = request.GET.copy()
+#     query[page] = new_page
+#     return query.urlencode()
 
 
 @register.filter(name='shopping_recipe')
