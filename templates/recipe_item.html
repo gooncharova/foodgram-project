@@ -1,4 +1,4 @@
-{% load static recipe_feature %}    
+{% load static user_filters recipe_feature %}    
     <div class="card" data-id={{ recipe.id }}>
       {% csrf_token %} 
         <a href="{% url 'recipe' recipe.id %}" class="link" target="_self"><img src="{{ recipe.image.url }}" alt="Какой-то текст" class="card__image"></a>
@@ -31,11 +31,11 @@
             <button class="button button_style_blue" name="purchases" data-out><span
                     class="icon-plus button__icon"></span>Добавить в покупки</button>
           {% endif %}
-          {% endif %}
                     {% if request.user in recipe.favorite.all %}
                     <button class="button button_style_none" name="favorites"><span class="icon-favorite icon-favorite_active"></span></button>
                     {% else %}
                     <button class="button button_style_none" name="favorites" data-out><span class="icon-favorite"></span></button>
                     {% endif %}
+          {% endif %}
         </div>
     </div>

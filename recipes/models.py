@@ -3,6 +3,7 @@ from django.db import models
 
 User = get_user_model()
 
+TAGS_CHOICES = (('breakfast', 'Завтрак'), ('lunch', 'Обед'), ('dinner', 'Ужин'))
 
 class Ingredient(models.Model):
     title = models.CharField(max_length=100,
@@ -30,11 +31,10 @@ class Recipe(models.Model):
     image = models.ImageField(upload_to='recipe/', verbose_name='Изображение')
     text = models.TextField(verbose_name='Описание рецепта')
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
-    ingredients = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
-                                    related_name='recipe_ingredient',
-                                    verbose_name='Ингредиенты')
+    ingredients = models.ManyToManyField(
+        Ingredient, through='Amount', through_fields=('recipe', 'ingredient'), verbose_name='Ингредиенты')
     tag = models.ManyToManyField(Tag, related_name='tag', verbose_name='Тег')
-    cook_time = models.IntegerField(verbose_name='Время приготовления')
+    cook_time = models.PositiveIntegerField(verbose_name='Время приготовления')
     favorite = models.ManyToManyField(User, related_name='favorite',
                                       blank=True, verbose_name='Избранное')
 

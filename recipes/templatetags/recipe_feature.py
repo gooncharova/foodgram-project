@@ -1,6 +1,6 @@
 from django import template
 
-from recipes.models import Follow, ShopList
+from recipes.models import Follow, ShopList, Recipe, Tag
 
 register = template.Library()
 
@@ -44,3 +44,29 @@ def shopping_recipe(recipe, user):
 @register.filter(name='shopping_count')
 def shopping_count(request, user_id):
     return ShopList.objects.filter(user=user_id).count()
+
+
+@register.filter(name='recipe_count')
+def recipe_count(request, author):
+    author_recipe_count = (Recipe.objects.filter(author=author).count()-3)
+    if author_recipe_count <= 0:
+        return None
+    if author_recipe_count % 10 == 1:
+        return f'{author_recipe_count} рецепт'
+    if author_recipe_count % 10 in [2, 3, 4] and author_recipe_count not in [12, 13, 14]:
+        return f'{author_recipe_count} рецептa'
+    else:
+        return f'{author_recipe_count} рецептов'
+
+
+@register.filter(name='tag_colour')
+def tag_colour(tag):
+    qs = Tag.objects.filter(title=tag).values('checkbox_style')
+    return(qs[0]['checkbox_style'])
+
+
+@register.filter(name='tag_id')
+def tag_id(tag):
+    # print(Tag.objects.filter(title=tag))
+    qs = Tag.objects.filter(title=tag).values('id')
+    return(qs[0]['id'])

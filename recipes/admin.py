@@ -31,7 +31,7 @@ class IngredientAdmin(admin.ModelAdmin):
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('title', 'slug', )
+    list_display = ('pk', 'title', 'slug', )
     search_fields = ('name', )
     empty_value_display = '-пусто-'
 

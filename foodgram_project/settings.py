@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.flatpages',
     "sorl.thumbnail",
+    'multiselectfield',
 ]
 
 MIDDLEWARE = [

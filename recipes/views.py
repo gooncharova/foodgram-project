@@ -5,11 +5,12 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from .forms import RecipeForm
 # from .extras import get_all_tags, get_filters
 from .models import Follow, Recipe, ShopList, Tag, User, Amount, Ingredient
-from django.contrib import messages
+# from django.contrib import messages
 
 # from django.views.decorators.csrf import csrf_protect
 
@@ -63,51 +64,80 @@ def recipe_view(request, recipe_id):
     return render(request, 'recipe.html', {'recipe': recipe})
 
 
+def get_ingredients(request):
+    keyword = request.GET.get('query')
+    if keyword:
+        ingredient_list = Ingredient.objects.filter(
+            title__istartswith=keyword).values_list()
+        data_notice = [{'title': x[1], 'dimension': x[2]}
+                       for x in ingredient_list]
+        return JsonResponse(data_notice, safe=False)
+    else:
+        ingredient_list = None
+        return JsonResponse({'Found': "None"})
+
+
+def recipe_ingredient(request):
+    data = {}
+    # print(f'data={data}')
+    # print(request.POST.items)
+    for item in request.POST.items():
+        if 'nameIngredient' in item[0]:
+            name = item[1]
+        if 'valueIngredient' in item[0]:
+            value = item[1]
+            data[name] = value
+    # print(f'data={data}')
+    return(data)
+
+
 @login_required
 def new_recipe(request):
-    if request.method != 'POST':
-        form = RecipeForm()
+    if request.method == 'POST':
+        form = RecipeForm(request.POST or None, files=request.FILES or None)
+        # ingredients = recipe_ingredient(request)
+        # print(ingredients)
+        tags = request.POST.getlist('tag')
+        print(tags)
+        ingredients = recipe_ingredient(request)
+        print(ingredients)
+        if ingredients == {}:
+            form.add_error(
+            'image',
+            'Необходимо указать хотя бы один ингредиент для рецепта')
+
+        if form.is_valid():
+            recipe = form.save(commit=False)
+            recipe.author = request.user
+            # recipe.ingredients = ingredients
+            print(form.data)
+            # recipe.tag = request.POST.getlist('tags')
+            recipe.save()
+            ingredients = recipe_ingredient(request)
+            print(ingredients)
+            if ingredients == {}:
+                form.add_error(
+                'image',
+                'Необходимо указать хотя бы один ингредиент для рецепта')
+            for item in ingredients:
+                Amount.objects.create(
+                    recipe=recipe,
+                    ingredient=Ingredient.objects.filter(title=item).all()[0],
+                    amount=ingredients[item]
+                )
+            
+            form.save_m2m()
+
+            return redirect('index')
     else:
         form = RecipeForm(request.POST or None, files=request.FILES or None)
-        i = 1
-        ingredients = []
-        while request.POST.get(f'nameIngredient_{i}') is not None:
-            ingredients.append([request.POST.get(
-                f'nameIngredient_{i}'), request.POST.get(f'valueIngredient_{i}')])
-            i += 1
-        if form.is_valid():
-            new_recipe = form.save(commit=False)
-            new_recipe.author = request.user
-            new_recipe = form.save()
-            ingredients_dict = {}
-            for pair in ingredients:
-                name = str(pair[0])
-                val = int(pair[1])
-                if name not in ingredients_dict:
-                    ingredients_dict[name] = val
-                else:
-                    ingredients_dict[name] += val
-            for ingredient in ingredients_dict.keys():
-                if Ingredient.objects.filter(title=ingredient).exists():
-                    Amount.objects.create(recipe=new_recipe, ingredient=Ingredient.objects.get(
-                    title=ingredient), amount=ingredients_dict[ingredient])
-                else:
-                    messages.error(request, f"{ingredient} нету в базе. сорян. попробуй еще раз.")
-                    del ingredients_dict[ingredient]
-                    form = RecipeForm(data=request.POST, instance=new_recipe)
-                    print(ingredients_dict)
-                    context = {'recipe': new_recipe,
-                               "ingredients_dict": ingredients_dict,
-                               'form': form}
-                    return render(request, 'recipe_form.html', context)
-            return redirect('index')
-    context = {'form': form}
-    return render(request, 'recipe_form.html', context)
+    all_tags = Tag.objects.all()
+    return render(request, 'recipe_form.html', context={'form': form, 'all_tags': all_tags})
 
 
 @login_required
 def recipe_edit(request, recipe_id):
-    recipe = get_object_or_404(Recipe, id=recipe_id)
+    recipe = get_object_or_404(Recipe, pk=recipe_id)
     if recipe.author != request.user:
         return HttpResponse('you cannot do it')
     if request.method != 'POST':
@@ -117,9 +147,23 @@ def recipe_edit(request, recipe_id):
                           files=request.FILES or None, instance=recipe)
         if form.is_valid():
             form.save()
-            return redirect('recipe', id)
-    context = {'recipe': recipe, 'form': form, 'edit': True}
-    return render(request, 'recipe_form.html', context)
+            ingredients = recipe_ingredient(request)
+            for item in ingredients:
+                Amount.objects.create(
+                    recipe=recipe,
+                    ingredient=Ingredient.objects.filter(title=item).all()[0],
+                    amount=ingredients[item]
+                )
+            return redirect('recipe', recipe_id)
+    ingr_dict = recipe.ingredients.all().values()
+    print(ingr_dict)
+    tag_dict = recipe.tag.all().values()
+    tag_visible = []
+    for item in tag_dict:
+        tag_visible.append(item['title'])
+    return render(
+            request, 'recipe_form.html', context={'form': form, 'recipe': recipe, 'tag_visible': tag_visible, 'edit': True}
+            )
 
 
 @login_required
@@ -127,7 +171,7 @@ def recipe_delete(request, username, recipe_id):
     author = get_object_or_404(User, username=username)
     recipe = Recipe.objects.filter(author=author, pk=recipe_id)
     if request.user != author:
-        return redirect('post', username=recipe.author, pk=recipe_id)
+        return redirect('recipe', username=recipe.author, pk=recipe_id)
     recipe.delete()
     return redirect('profile', username=author.username)
 
@@ -232,17 +276,16 @@ def remove_purchases(request, id):
         return redirect('shopping_list')
 
 
-def get_ingredients(request):
-    keyword = request.GET.get('query')
-    if keyword:
-        ingredient_list = Ingredient.objects.filter(
-            title__contains=keyword).values_list()
-        data_noice = [{'title': x[1], 'dimension': x[2]}
-                      for x in ingredient_list]
-        return JsonResponse(data_noice, safe=False)
-    else:
-        ingredient_list = None
-        return JsonResponse({'Found': "None"})
+# def get_ingredients_js(request):
+#     text = request.GET.get('query')
+#     data = []
+#     ingredients = Ingredient.objects.filter(
+#         name__icontains=text).all()
+#     for ingredient in ingredients:
+#         data.append(
+#             {'title': ingredient.name, 'dimension': ingredient.description,'units':ingredient.units_of_measurement})
+#     return JsonResponse(data, safe=False)
+
 
 @login_required
 def download_shopping_list(request):

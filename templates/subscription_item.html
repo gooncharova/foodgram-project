@@ -1,3 +1,4 @@
+{% load recipe_feature %}
 <div class="card-user" data-author={{ author.id }}>
     <div class="card-user__header">
         <h2 class="card-user__title">{{ author.get_full_name }}</h2>
@@ -8,7 +9,7 @@
             {% for recipe in author.recipe_author.all|slice:":3" %}      
             <li class="card-user__item">
                 <div class="recipe">
-                    <img src="{{ recipe.image.url }}" alt="Какой-то текст" class="recipe__image">
+                    <img src="{{ recipe.image.url }}" alt="Фото рецепта" class="recipe__image">
                     <h3 class="recipe__title">{{ recipe.title }}</h3>
                     <p class="recipe__text"><span class="icon-time"></span> {{ recipe.cook_time }} мин</p>
                 </div>
@@ -16,11 +17,12 @@
             </li>
        
             {% endfor %}
-            {% if author.recipes.all|length > 3 %}
+            {% if recipe|recipe_count:author != None %}
             <li class="card-user__item">
-                <a href={% url 'profile' author.username %} class="card-user__link link">Еще {{ author.recipes.all|length|add:"-3" }} рецептов...</a>
+                <a href="{% url 'profile' author.username %}" class="card-user__link link">Еще {{ recipe|recipe_count:author }}...</a>
             </li>
             {% endif %}
+        
     
         </ul>
     </div>
