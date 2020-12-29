@@ -5,9 +5,6 @@ from django.contrib import admin
 from django.contrib.flatpages import views
 from django.urls import include, path
 
-from rest_framework_simplejwt.views import (TokenObtainPairView,
-                                            TokenRefreshView)
-
 handler404 = 'recipes.views.page_not_found'  # noqa
 handler500 = 'recipes.views.server_error'  # noqa
 
@@ -15,11 +12,6 @@ urlpatterns = [
     path('auth/', include('users.urls')),
     path('auth/', include('django.contrib.auth.urls')),
     path('admin/', admin.site.urls),
-    path('api/v1/', include('api.urls')),
-    path('api/v1/token/', TokenObtainPairView.as_view(),
-         name='token_obtain_pair'),
-    path('api/v1/token/refresh/', TokenRefreshView.as_view(),
-         name='token_refresh'),
     path('', include('recipes.urls')),
 ]
 

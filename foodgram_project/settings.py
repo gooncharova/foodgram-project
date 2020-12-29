@@ -12,8 +12,9 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 
-import environ
 from dotenv import load_dotenv
+
+import environ
 
 load_dotenv()
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -38,7 +39,6 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'api',
     'recipes',
     'users',
     'rest_framework',
@@ -51,8 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.flatpages',
-    "sorl.thumbnail",
-    'multiselectfield',
+    'sorl.thumbnail',
 ]
 
 MIDDLEWARE = [
@@ -142,24 +141,20 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = 'index'
 
-EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 SITE_ID = 1
 
 CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
-CACHE_TIME = 20
+CACHE_TIME = 5
 
 INTERNAL_IPS = [
-    "127.0.0.1",
+    '127.0.0.1',
 ]
-
-REST_FRAMEWORK = {
-        'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
-    }
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240

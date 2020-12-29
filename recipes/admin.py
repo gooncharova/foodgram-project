@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.db.models import Count
+
 from .models import Amount, Follow, Ingredient, Recipe, ShopList, Tag
 
 
@@ -10,20 +11,20 @@ class AmountInLine(admin.TabularInline):
 
 class RecipeAdmin(admin.ModelAdmin):
     inlines = (AmountInLine, )
-    # filter_horizontal = ('tag', 'ingredients',)
-    list_display = ('pk', 'title', 'author', )
+    filter_horizontal = ('tag',)
+    list_display = ('pk', 'title', 'author', 'get_favorite',)
     ordering = ['title', ]
-    list_filter = ('title',)
+    list_filter = ('title', 'author', 'tag')
     autocomplete_fields = ('ingredients',)
-    empty_value_display = '-пусто-'
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset.annotate(_get_favorite=Count('favorite'))
 
-    # def count_favorited(self, obj):
-    #     count = Favorite.objects.filter(recipe=obj).count()
-    #     return count
+    def get_favorite(self, obj):
+        return obj._get_favorite
+
+    get_favorite.short_description = 'В избранном'
 
 
 class IngredientAdmin(admin.ModelAdmin):
@@ -31,24 +32,20 @@ class IngredientAdmin(admin.ModelAdmin):
     ordering = ['title', ]
     list_filter = ('title',)
     search_fields = ('title', )
-    empty_value_display = '-пусто-'
 
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('pk', 'title', 'slug', )
     search_fields = ('name', )
-    empty_value_display = '-пусто-'
 
 
 class AmountAdmin(admin.ModelAdmin):
     list_display = ('amount', 'ingredient', 'recipe', )
-    empty_value_display = '-пусто-'
 
 
 class FollowAdmin(admin.ModelAdmin):
     list_display = ('pk', 'user', 'author')
     search_fields = ('user',)
-    empty_value_display = '-пусто-'
 
 
 admin.site.register(Recipe, RecipeAdmin)

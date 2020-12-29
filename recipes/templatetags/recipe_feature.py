@@ -1,6 +1,6 @@
 from django import template
 
-from recipes.models import Follow, ShopList, Recipe, Tag
+from recipes.models import Follow, Recipe, ShopList, Tag
 
 register = template.Library()
 
@@ -27,13 +27,6 @@ def get_filter_link(request, tag):
 @register.filter(name='is_following')
 def is_following(author, user):
     return Follow.objects.filter(user=user, author=author).exists()
-
-
-# @register.simple_tag()
-# def url_replace(request, page, new_page):
-#     query = request.GET.copy()
-#     query[page] = new_page
-#     return query.urlencode()
 
 
 @register.filter(name='shopping_recipe')
@@ -67,6 +60,5 @@ def tag_colour(tag):
 
 @register.filter(name='tag_id')
 def tag_id(tag):
-    # print(Tag.objects.filter(title=tag))
     qs = Tag.objects.filter(title=tag).values('id')
     return(qs[0]['id'])

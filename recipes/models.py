@@ -3,7 +3,6 @@ from django.db import models
 
 User = get_user_model()
 
-TAGS_CHOICES = (('breakfast', 'Завтрак'), ('lunch', 'Обед'), ('dinner', 'Ужин'))
 
 class Ingredient(models.Model):
     title = models.CharField(max_length=100,
@@ -48,7 +47,7 @@ class Amount(models.Model):
                                    related_name='ingredient',
                                    verbose_name='Ингредиент')
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, verbose_name='Рецепт', related_name='recipe_amount')
+        Recipe, on_delete=models.CASCADE, related_name='recipe_amount', verbose_name='Рецепт')
 
 
 class Follow(models.Model):
@@ -68,5 +67,3 @@ class ShopList(models.Model):
                                related_name='recipe_to_shop',
                                verbose_name='Рецепт')
 
-    # def __str__(self):
-    #     return self.recipe

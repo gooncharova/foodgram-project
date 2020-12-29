@@ -1,12 +1,12 @@
-# from django.conf import settings
+from django.conf import settings
 import json
 
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
 from django.db.models import Sum
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -15,62 +15,46 @@ except ImportError:
 from reportlab.pdfgen import canvas
 
 from .forms import RecipeForm
-# from .extras import get_all_tags, get_filters
-from .models import Follow, Recipe, ShopList, Tag, User, Amount, Ingredient, ShopList
-# from django.contrib import messages
+from .extras import filtering_tags, recipe_save, validate_ingredients, get_recipe_tags
+from .models import Amount, Follow, Ingredient, Recipe, ShopList, Tag, User
 
 # from django.views.decorators.csrf import csrf_protect
 
 
-def filtered_tags(request):
-    if 'filters' in request.GET:
-        list_of_tags = request.GET.getlist('filters')
-    else:
-        list_of_tags = ['breakfast', 'lunch', 'dinner']
-    # tag_urls = {}
-    # for tag in ['breakfast', 'lunch', 'dinner']:
-    #     tag_urls[tag] = get_tag_url(tags, tag)
-    filtered_tags = Tag.objects.filter(slug__in=list_of_tags)
-    return filtered_tags
-
-
-# @csrf_protect
 def index(request):
-    tags = filtered_tags(request)
+    tags = filtering_tags(request)
     recipe_list = Recipe.objects.all().order_by(
         '-pub_date').distinct().filter(tag__in=tags)
     all_tags = Tag.objects.all()
-    # return get_filters(self.request, qs)
     paginator = Paginator(recipe_list, 6)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    return render(request, 'index.html', {'page': page,
-                                          'paginator': paginator,
-                                          'tags': all_tags})
-    # 'cache_timeout':
-    # settings.CACHE_TIME})
+    context = {'page': page, 'paginator': paginator,
+               'tags': all_tags, 'cache_timeout': settings.CACHE_TIME}
+    return render(request, 'index.html', context)
 
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
-    tags = filtered_tags(request)
+    tags = filtering_tags(request)
     recipe_list = author.recipe_author.order_by(
         '-pub_date').distinct().filter(tag__in=tags)
     all_tags = Tag.objects.all()
     paginator = Paginator(recipe_list, 6)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    return render(request, 'profile.html', {'author': author,
-                                            'page': page,
-                                            'paginator': paginator,
-                                            'tags': all_tags})
+    context = {'author': author, 'page': page, 'paginator': paginator,
+               'tags': all_tags, 'cache_timeout': settings.CACHE_TIME}
+    return render(request, 'profile.html', context)
 
 
 def recipe_view(request, recipe_id):
     recipe = get_object_or_404(Recipe, pk=recipe_id)
-    return render(request, 'recipe.html', {'recipe': recipe})
+    context = {'recipe': recipe}
+    return render(request, 'recipe.html', context)
 
 
+@login_required
 def get_ingredients(request):
     keyword = request.GET.get('query')
     if keyword:
@@ -81,95 +65,23 @@ def get_ingredients(request):
         return JsonResponse(data_notice, safe=False)
     else:
         ingredient_list = None
-        return JsonResponse({'Found': "None"})
-
-
-def recipe_save(request, form):
-    recipe = form.save(commit=False)
-    recipe.author = request.user
-    # сохраняем рецепт без тегов и количества ингредиентов
-    recipe.save()
-    data = []
-    # print(f'data={data}')
-    print(request.POST.items)
-    for item in request.POST.items():
-        if 'nameIngredient' in item[0]:
-            title = item[1]
-        if 'valueIngredient' in item[0]:
-            amount = item[1]
-            # data.append(amount)
-        if 'unitsIngredient' in item[0]:
-            unit = item[1]
-            # получаем экземпляр ингредиента
-            # и собираем объекты IngredientAmount
-            ing = Ingredient.objects.get(title=title, unit=unit)
-            data.append(
-                Amount(ingredient=ing, recipe=recipe, amount=amount)
-            )
-    Amount.objects.bulk_create(data)
-    form.save_m2m()
-
-
-def validate_ingredients(request, form):
-    for item in request.POST.items():
-        if 'nameIngredient' in item[0]:
-            return None
-        # if 'valueIngredient' in item[0]:
-        #     amount = item[1]
-        #     # data.append(amount)
-        # if 'unitsIngredient' in item[0]:
-        #     unit = item[1]
-    print('error')
-    return form.add_error(
-        'image',
-        'Необходимо указать хотя бы один ингредиент для рецепта')
+        return JsonResponse({'Found': 'None'})
 
 
 @login_required
 def new_recipe(request):
     if request.method == 'POST':
         form = RecipeForm(request.POST or None, files=request.FILES or None)
-        # ingredients = recipe_save(request)
-        # print(ingredients)
         tags = request.POST.getlist('tag')
         print(tags)
         validate_ingredients(request, form)
-        # ingredients = recipe_save(request)
-        # print(ingredients)
-        # if ingredients == {}:
-        #     form.add_error(
-        #     'image',
-        #     'Необходимо указать хотя бы один ингредиент для рецепта')
-
         if form.is_valid():
-            # recipe = form.save(commit=False)
-            # recipe.author = request.user
-            # # recipe.ingredients = ingredients
-            # print(form.data)
-            # # recipe.tag = request.POST.getlist('tags')
-            # recipe.save()
-            # ingredients = recipe_save(request)
-            # print(ingredients)
             recipe_save(request, form)
-
-            # if ingredients == {}:
-            #     form.add_error(
-            #     'image',
-            #     'Необходимо указать хотя бы один ингредиент для рецепта')
-            # for item in ingredients:
-            #     Amount.objects.create(
-            #         recipe=recipe,
-            #         ingredient=Ingredient.objects.filter(title=item).all()[0],
-            #         amount=ingredients[item]
-            #     )
-            
-            # form.save_m2m()
-
             return redirect('index')
     else:
         form = RecipeForm(request.POST or None)
-    all_tags = Tag.objects.all()
-    return render(request, 'recipe_form.html', context={'form': form, 'all_tags': all_tags})
+    context = {'form': form}
+    return render(request, 'recipe_form.html', context)
 
 
 @login_required
@@ -187,30 +99,10 @@ def recipe_edit(request, recipe_id):
             recipe.ingredients.remove()
             recipe.recipe_amount.all().delete()
             recipe_save(request, form)
-            # form.save()
-            # ingredients = recipe_save(request)
-            # for item in ingredients:
-            #     Amount.objects.create(
-            #         recipe=recipe,
-            #         ingredient=Ingredient.objects.filter(title=item).all()[0],
-            #         amount=ingredients[item]
-            #     )
             return redirect('recipe', recipe_id)
-    ingr_dict = recipe.ingredients.all().values()
-    print(ingr_dict)
-    # amount_list = []
-    # for item in ingr_dict:
-    #     amount = Amount.objects.filter(recipe=recipe, ingredient=item['id']).values()
-    #     amount_list.append(amount)
-    # print(amount_list)
-    amount = Amount.objects.filter(recipe=recipe)
-    tag_dict = recipe.tag.all().values()
-    tag_visible = []
-    for item in tag_dict:
-        tag_visible.append(item['title'])
-    return render(
-            request, 'recipe_form.html', context={'form': form, 'recipe': recipe, 'tag_visible': tag_visible, 'edit': True, 'amount': amount}
-            )
+    recipe_tags = get_recipe_tags(recipe)
+    context = {'form': form, 'recipe': recipe, 'recipe_tags': recipe_tags, 'edit': True}
+    return render(request, 'recipe_form.html', context)
 
 
 @login_required
@@ -226,13 +118,7 @@ def recipe_delete(request, username, recipe_id):
 @login_required
 def subscriptions(request):
     following_list = request.user.follower.all()
-    # paginator = Paginator(following_list, 3)
-    # page_number = request.GET.get('page')
-    # page = paginator.get_page(page_number)
-    context = {
-        'following_list': following_list,
-        # 'paginator': paginator,
-    }
+    context = {'following_list': following_list}
     return render(request, 'subscriptions_list.html', context)
 
 
@@ -266,15 +152,14 @@ def profile_unfollow(request, id):
 
 @login_required
 def favorites(request):
-    tags = filtered_tags(request)
+    tags = filtering_tags(request)
     recipe_list = Recipe.objects.filter(favorite=request.user).order_by(
         '-pub_date').distinct().filter(tag__in=tags)
     all_tags = Tag.objects.all()
-    return render(request, 'favorites.html', {'tags': all_tags,
-                                              'recipes': recipe_list})
+    context = {'tags': all_tags, 'recipes': recipe_list}
+    return render(request, 'favorites.html', context)
 
 
-# @csrf_protect
 @login_required
 def add_favorites(request):
     data = json.loads(request.body)
@@ -294,7 +179,8 @@ def remove_favorites(request, id):
 @login_required
 def shopping_list(request):
     shop_list = ShopList.objects.all()
-    return render(request, 'shopping_list.html', {'shop_list': shop_list})
+    context = {'shop_list': shop_list}
+    return render(request, 'shopping_list.html', context)
 
 
 @login_required
@@ -323,20 +209,8 @@ def remove_purchases(request, id):
         return redirect('shopping_list')
 
 
-# def get_ingredients_js(request):
-#     text = request.GET.get('query')
-#     data = []
-#     ingredients = Ingredient.objects.filter(
-#         name__icontains=text).all()
-#     for ingredient in ingredients:
-#         data.append(
-#             {'title': ingredient.name, 'dimension': ingredient.description,'units':ingredient.units_of_measurement})
-#     return JsonResponse(data, safe=False)
-
-
 @login_required
 def download_shopping_list_txt(request):
-    # amount_dict = {}
     filename = 'shoplist.txt'
     content = ''
     users_recipe = ShopList.objects.filter(user=request.user)
@@ -385,7 +259,8 @@ def download_shopping_list_pdf(request):
 
 
 def page_not_found(request, exception):
-    return render(request, 'misc/404.html', {'path': request.path}, status=404)
+    context = {'path': request.path}
+    return render(request, 'misc/404.html', context, status=404)
 
 
 def server_error(request):
