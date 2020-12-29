@@ -56,7 +56,6 @@
                 </div>
             </div>
             <div class="form__group">
-                {{ form.ingredients }}
                 <label for="nameIngredient" class="form__label">Ингредиенты</label>
                 <div class="form__field-group">
                     <div class="form__field-group-ingredientes">
@@ -69,13 +68,17 @@
                     </div>
                     <div class="form__field-group-ingredientes-container">
                     {% if edit %}
-                    <div class="form__field-item-ingredient" id="ing_3">
-                        <span> {{ form.ingredients.title }} 10 шт.</span>
+                    {% for ing in recipe.recipe_amount.all %}
+                    <div class="form__field-item-ingredient" id="ing_{{ forloop.counter }}">
+                    
+                        <span> {{ ing.ingredient.title }} {% if ing.amount > 0 %}{{ ing.amount|floatformat:-1 }}{% endif %}{{ ing.ingredient.unit }}</span>
+                    
                         <span class="form__field-item-delete"></span>
-                        <input id="nameIngredient_3" name="nameIngredient_3" type="hidden" value="Оливки">
-                        <input id="valueIngredient_3" name="valueIngredient_3" type="hidden" value="{{ form.ingredients.amount }}">
-                        <input id="unitsIngredient_3" name="unitsIngredient_3" type="hidden" value="{{ form.ingredients.unit }}">
+                            <input id="nameIngredient_{{ forloop.counter }}" name="nameIngredient_{{ forloop.counter }}" type="hidden" value="{{ ing.ingredient.title }}">
+                            <input id="valueIngredient_{{ forloop.counter }}" name="valueIngredient_{{ forloop.counter }}" type="hidden" value="{{ ing.amount}}">
+                            <input id="unitsIngredient_{{ forloop.counter }}" name="unitsIngredient_{{ forloop.counter }}" type="hidden" value="{{ ing.ingredient.unit }}">
                     </div>
+                    {% endfor %}
                     {% endif %}
                     </div>
                     <span class="form__ingredient-link" id="addIng">Добавить ингредиент</span>

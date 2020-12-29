@@ -1,5 +1,5 @@
 from django.contrib import admin
-
+from django.db.models import Count
 from .models import Amount, Follow, Ingredient, Recipe, ShopList, Tag
 
 
@@ -16,6 +16,10 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('title',)
     autocomplete_fields = ('ingredients',)
     empty_value_display = '-пусто-'
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.annotate(_get_favorite=Count('favorite'))
 
     # def count_favorited(self, obj):
     #     count = Favorite.objects.filter(recipe=obj).count()

@@ -23,8 +23,10 @@
             </li>
             {% endfor %}
         </ul>
-        <a href="{% url 'download_shopping_list' %}"><button class="button button_style_blue">Скачать список</button></a>
-
+        <ul class="single-card__items">
+        <a href="{% url 'download_shopping_list_txt' %}"><button class="button button_style_blue">Скачать список (.txt)</button></a>
+        <a href="{% url 'download_shopping_list_pdf' %}"><button class="button button_style_blue">Скачать список (.pdf)</button></a>
+    </ul>
 
     </div>
 </main>

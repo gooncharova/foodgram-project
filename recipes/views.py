@@ -6,10 +6,17 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.db.models import Sum
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
+from reportlab.pdfgen import canvas
 
 from .forms import RecipeForm
 # from .extras import get_all_tags, get_filters
-from .models import Follow, Recipe, ShopList, Tag, User, Amount, Ingredient
+from .models import Follow, Recipe, ShopList, Tag, User, Amount, Ingredient, ShopList
 # from django.contrib import messages
 
 # from django.views.decorators.csrf import csrf_protect
@@ -77,60 +84,90 @@ def get_ingredients(request):
         return JsonResponse({'Found': "None"})
 
 
-def recipe_ingredient(request):
-    data = {}
+def recipe_save(request, form):
+    recipe = form.save(commit=False)
+    recipe.author = request.user
+    # сохраняем рецепт без тегов и количества ингредиентов
+    recipe.save()
+    data = []
     # print(f'data={data}')
-    # print(request.POST.items)
+    print(request.POST.items)
     for item in request.POST.items():
         if 'nameIngredient' in item[0]:
-            name = item[1]
+            title = item[1]
         if 'valueIngredient' in item[0]:
-            value = item[1]
-            data[name] = value
-    # print(f'data={data}')
-    return(data)
+            amount = item[1]
+            # data.append(amount)
+        if 'unitsIngredient' in item[0]:
+            unit = item[1]
+            # получаем экземпляр ингредиента
+            # и собираем объекты IngredientAmount
+            ing = Ingredient.objects.get(title=title, unit=unit)
+            data.append(
+                Amount(ingredient=ing, recipe=recipe, amount=amount)
+            )
+    Amount.objects.bulk_create(data)
+    form.save_m2m()
+
+
+def validate_ingredients(request, form):
+    for item in request.POST.items():
+        if 'nameIngredient' in item[0]:
+            return None
+        # if 'valueIngredient' in item[0]:
+        #     amount = item[1]
+        #     # data.append(amount)
+        # if 'unitsIngredient' in item[0]:
+        #     unit = item[1]
+    print('error')
+    return form.add_error(
+        'image',
+        'Необходимо указать хотя бы один ингредиент для рецепта')
 
 
 @login_required
 def new_recipe(request):
     if request.method == 'POST':
         form = RecipeForm(request.POST or None, files=request.FILES or None)
-        # ingredients = recipe_ingredient(request)
+        # ingredients = recipe_save(request)
         # print(ingredients)
         tags = request.POST.getlist('tag')
         print(tags)
-        ingredients = recipe_ingredient(request)
-        print(ingredients)
-        if ingredients == {}:
-            form.add_error(
-            'image',
-            'Необходимо указать хотя бы один ингредиент для рецепта')
+        validate_ingredients(request, form)
+        # ingredients = recipe_save(request)
+        # print(ingredients)
+        # if ingredients == {}:
+        #     form.add_error(
+        #     'image',
+        #     'Необходимо указать хотя бы один ингредиент для рецепта')
 
         if form.is_valid():
-            recipe = form.save(commit=False)
-            recipe.author = request.user
-            # recipe.ingredients = ingredients
-            print(form.data)
-            # recipe.tag = request.POST.getlist('tags')
-            recipe.save()
-            ingredients = recipe_ingredient(request)
-            print(ingredients)
-            if ingredients == {}:
-                form.add_error(
-                'image',
-                'Необходимо указать хотя бы один ингредиент для рецепта')
-            for item in ingredients:
-                Amount.objects.create(
-                    recipe=recipe,
-                    ingredient=Ingredient.objects.filter(title=item).all()[0],
-                    amount=ingredients[item]
-                )
+            # recipe = form.save(commit=False)
+            # recipe.author = request.user
+            # # recipe.ingredients = ingredients
+            # print(form.data)
+            # # recipe.tag = request.POST.getlist('tags')
+            # recipe.save()
+            # ingredients = recipe_save(request)
+            # print(ingredients)
+            recipe_save(request, form)
+
+            # if ingredients == {}:
+            #     form.add_error(
+            #     'image',
+            #     'Необходимо указать хотя бы один ингредиент для рецепта')
+            # for item in ingredients:
+            #     Amount.objects.create(
+            #         recipe=recipe,
+            #         ingredient=Ingredient.objects.filter(title=item).all()[0],
+            #         amount=ingredients[item]
+            #     )
             
-            form.save_m2m()
+            # form.save_m2m()
 
             return redirect('index')
     else:
-        form = RecipeForm(request.POST or None, files=request.FILES or None)
+        form = RecipeForm(request.POST or None)
     all_tags = Tag.objects.all()
     return render(request, 'recipe_form.html', context={'form': form, 'all_tags': all_tags})
 
@@ -139,30 +176,40 @@ def new_recipe(request):
 def recipe_edit(request, recipe_id):
     recipe = get_object_or_404(Recipe, pk=recipe_id)
     if recipe.author != request.user:
-        return HttpResponse('you cannot do it')
+        return redirect('recipe_view', recipe_id=recipe_id)
     if request.method != 'POST':
         form = RecipeForm(instance=recipe)
     else:
         form = RecipeForm(request.POST or None,
                           files=request.FILES or None, instance=recipe)
+        validate_ingredients(request, form)
         if form.is_valid():
-            form.save()
-            ingredients = recipe_ingredient(request)
-            for item in ingredients:
-                Amount.objects.create(
-                    recipe=recipe,
-                    ingredient=Ingredient.objects.filter(title=item).all()[0],
-                    amount=ingredients[item]
-                )
+            recipe.ingredients.remove()
+            recipe.recipe_amount.all().delete()
+            recipe_save(request, form)
+            # form.save()
+            # ingredients = recipe_save(request)
+            # for item in ingredients:
+            #     Amount.objects.create(
+            #         recipe=recipe,
+            #         ingredient=Ingredient.objects.filter(title=item).all()[0],
+            #         amount=ingredients[item]
+            #     )
             return redirect('recipe', recipe_id)
     ingr_dict = recipe.ingredients.all().values()
     print(ingr_dict)
+    # amount_list = []
+    # for item in ingr_dict:
+    #     amount = Amount.objects.filter(recipe=recipe, ingredient=item['id']).values()
+    #     amount_list.append(amount)
+    # print(amount_list)
+    amount = Amount.objects.filter(recipe=recipe)
     tag_dict = recipe.tag.all().values()
     tag_visible = []
     for item in tag_dict:
         tag_visible.append(item['title'])
     return render(
-            request, 'recipe_form.html', context={'form': form, 'recipe': recipe, 'tag_visible': tag_visible, 'edit': True}
+            request, 'recipe_form.html', context={'form': form, 'recipe': recipe, 'tag_visible': tag_visible, 'edit': True, 'amount': amount}
             )
 
 
@@ -288,8 +335,53 @@ def remove_purchases(request, id):
 
 
 @login_required
-def download_shopping_list(request):
-    pass
+def download_shopping_list_txt(request):
+    # amount_dict = {}
+    filename = 'shoplist.txt'
+    content = ''
+    users_recipe = ShopList.objects.filter(user=request.user)
+    recipe = [recipe.recipe for recipe in users_recipe]
+    amount = Amount.objects.filter(
+        recipe__in=recipe
+    ).values(
+        'ingredient__title', 'ingredient__unit'
+    ).annotate(
+        Sum('amount')
+    )
+    for a in amount:
+        title, dimension, amount_sum = a.values()
+        content = content + f'{title} {amount_sum} {dimension}\n'
+    response = HttpResponse(content, content_type='text/plain')
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+    return response
+
+
+def download_shopping_list_pdf(request):
+    filename = 'shoplist.pdf'
+    content = ''
+    users_recipe = ShopList.objects.filter(user=request.user)
+    recipe = [recipe.recipe for recipe in users_recipe]
+    amount = Amount.objects.filter(
+        recipe__in=recipe
+    ).values(
+        'ingredient__title', 'ingredient__unit'
+    ).annotate(
+        Sum('amount')
+    )
+    for a in amount:
+        title, dimension, amount_sum = a.values()
+        content = content + f'{title} {amount_sum} {dimension}\n'
+    response = HttpResponse(content, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+    # buffer = StringIO()
+    p = canvas.Canvas(response)
+    p.drawString(100, 100, content)
+    p.showPage()
+    p.save()
+    # pdf = buffer.getvalue()
+    # buffer.close()
+    # response.write(pdf)
+    return response
 
 
 def page_not_found(request, exception):
