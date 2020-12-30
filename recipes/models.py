@@ -31,7 +31,8 @@ class Recipe(models.Model):
     text = models.TextField(verbose_name='Описание рецепта')
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
     ingredients = models.ManyToManyField(
-        Ingredient, related_name='ingredients_recipe', through='Amount', through_fields=('recipe', 'ingredient'), verbose_name='Ингредиенты')
+        Ingredient, related_name='ingredients_recipe', through='Amount',
+        through_fields=('recipe', 'ingredient'), verbose_name='Ингредиенты')
     tag = models.ManyToManyField(Tag, related_name='tag', verbose_name='Тег')
     cook_time = models.PositiveIntegerField(verbose_name='Время приготовления')
     favorite = models.ManyToManyField(User, related_name='favorite',
@@ -47,7 +48,8 @@ class Amount(models.Model):
                                    related_name='ingredient',
                                    verbose_name='Ингредиент')
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='recipe_amount', verbose_name='Рецепт')
+        Recipe, on_delete=models.CASCADE, related_name='recipe_amount',
+        verbose_name='Рецепт')
 
 
 class Follow(models.Model):
@@ -66,4 +68,3 @@ class ShopList(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
                                related_name='recipe_to_shop',
                                verbose_name='Рецепт')
-

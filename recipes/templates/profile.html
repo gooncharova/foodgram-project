@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Профиль пользователя{% endblock %}
+{% block content %}
+  {% load static user_filters recipe_feature %}
+  {% include 'nav.html' with index=True %}
+  {% csrf_token %}
+  <main class="main container">
+    <link rel="stylesheet" href="{% static 'pages/index.css' %}">
+        <div class="main__header">
+            <h1 class="main__title">{{ author.get_full_name }}</h1>
+            <ul class="tags">
+                {% include "tags.html" %}
+            </ul>
+        </div>
+        {% if request.user.is_authenticated %}
+          {% if request.user != author %}
+            <div class="author-subscribe" data-author="{{ author.id }}">
+            {% if author|is_following:request.user %}
+              <p style="padding: 0 0 2em 0;">
+              <button class="button button_style_light-blue button_size_auto" name="subscribe" >Отписаться от автора</button></p>
+            {% else %}
+              <p style="padding: 0 0 2em 0;">
+                <button class="button button_style_light-blue button_size_auto" name="subscribe" data-out>Подписаться на автора</button></p>
+              </div>
+            {% endif %}
+            </div>
+          {% endif %}
+        {% endif %}
+        
+        <div class="card-list">
+        {% for recipe in page %}
+          {% include "recipe_item.html" %}
+        {% empty %}
+          {% if request.user != author %}
+            <h3>Этот автор еще не создал ни одного рецепта.</h3>
+          {% else %}
+            <h3>Вы еще не создали ни одного рецепта, скорее исправляйте это.</a></h3>
+          {% endif %}
+          {% if page.has_other_pages %}
+            {% include "paginator.html" with items=page paginator=paginator%}
+          {% endif %}
+        {% endfor %}
+        </div>
+  <script src="{% static 'js/config/config.js' %}"></script>
+  <script src="{% static 'js/components/MainCards.js' %}"></script>
+  <script src="{% static 'js/components/Purchases.js' %}"></script>
+  <script src="{% static 'js/components/Favorites.js' %}"></script>
+  <script src="{% static 'js/components/Subscribe.js' %}"></script>
+  <script src="{% static 'js/components/AuthorRecipe.js' %}"></script>
+  <script src="{% static 'js/components/Header.js' %}"></script>
+  <script src="{% static 'js/api/Api.js' %}"></script>
+  <script src="{% static 'authorRecipe.js' %}"></script>
+  </main>
+{% endblock %}

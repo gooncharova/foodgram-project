@@ -1,4 +1,4 @@
-from .models import Tag, Ingredient, Amount
+from .models import Amount, Ingredient, Tag
 
 
 def filtering_tags(request):

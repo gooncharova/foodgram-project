@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Избранное{% endblock %}
 {% block content %}
-{% load static user_filters %}
-{% include 'nav.html' with fav=True %}
-{% csrf_token %}
+  {% load static user_filters %}
+  {% include 'nav.html' with fav=True %}
+  {% csrf_token %}
     <link rel="stylesheet" href="{% static 'pages/index.css' %}">
     <main class="main container">
         <div class="main__header">
@@ -14,13 +14,13 @@
         </div>
             <div class="card-list">
             {% for recipe in recipes %}
-            {% include "recipe_item.html" %}
+              {% include "recipe_item.html" %}
             {% empty %}
-            <h2> У Вас нет избранных рецептов. </h2>
+              <h2> У Вас нет избранных рецептов. </h2>
             {% endfor %}
-                </div>
+            </div>
             {% if page.has_other_pages %}
-                    {% include "paginator.html" with items=page paginator=paginator%}
+              {% include "paginator.html" with items=page paginator=paginator%}
             {% endif %}
         </div>
     </main>

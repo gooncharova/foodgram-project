@@ -1,24 +1,21 @@
-from django.conf import settings
+import io
 import json
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Sum
-from django.http import HttpResponse, JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
-
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
+from .extras import (filtering_tags, get_recipe_tags, recipe_save,
+                     validate_ingredients)
 from .forms import RecipeForm
-from .extras import filtering_tags, recipe_save, validate_ingredients, get_recipe_tags
 from .models import Amount, Follow, Ingredient, Recipe, ShopList, Tag, User
-
-# from django.views.decorators.csrf import csrf_protect
 
 
 def index(request):
@@ -101,7 +98,8 @@ def recipe_edit(request, recipe_id):
             recipe_save(request, form)
             return redirect('recipe', recipe_id)
     recipe_tags = get_recipe_tags(recipe)
-    context = {'form': form, 'recipe': recipe, 'recipe_tags': recipe_tags, 'edit': True}
+    context = {'form': form, 'recipe': recipe, 'recipe_tags': recipe_tags,
+               'edit': True}
     return render(request, 'recipe_form.html', context)
 
 
@@ -232,30 +230,42 @@ def download_shopping_list_txt(request):
 
 def download_shopping_list_pdf(request):
     filename = 'shoplist.pdf'
-    content = ''
-    users_recipe = ShopList.objects.filter(user=request.user)
-    recipe = [recipe.recipe for recipe in users_recipe]
-    amount = Amount.objects.filter(
-        recipe__in=recipe
-    ).values(
-        'ingredient__title', 'ingredient__unit'
-    ).annotate(
-        Sum('amount')
-    )
-    for a in amount:
-        title, dimension, amount_sum = a.values()
-        content = content + f'{title} {amount_sum} {dimension}\n'
-    response = HttpResponse(content, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename={filename}'
-    # buffer = StringIO()
-    p = canvas.Canvas(response)
-    p.drawString(100, 100, content)
-    p.showPage()
-    p.save()
-    # pdf = buffer.getvalue()
-    # buffer.close()
-    # response.write(pdf)
-    return response
+    shoplist = ShopList.objects.filter(user=request.user).values()
+    dict_pdf = {}
+    for item in shoplist:
+        recipe = get_object_or_404(Recipe, id=item['recipe_id'])
+        for i in recipe.recipe_amount.all():
+            if i.ingredient.title not in dict_pdf:
+                dict_pdf[i.ingredient.title] = [
+                    int(i.amount), i.ingredient.unit]
+            else:
+                dict_pdf[i.ingredient.title][0] += int(i.quantity)
+    if not shoplist.exists():
+        return redirect('shopping_list')
+    else:
+        pdfmetrics.registerFont(TTFont('Font', 'font.ttf'))
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer)
+        p.setFont('Font', 32)
+        canvas_x = 60
+        canvas_y = 750
+        step_down = 20
+        p.drawString(150, 800, 'Список покупок')
+        p.setFont('Font', 20)
+        for i in dict_pdf.keys():
+            title = i
+            amount = str(dict_pdf[i][0])
+            unit = dict_pdf[i][1]
+            p.drawString(canvas_x, canvas_y, title +
+                         '   '+amount+'   '+unit)
+            canvas_y -= step_down
+            if canvas_y < 50 and canvas_x < 400:
+                canvas_y = 740
+                canvas_x = 400
+        p.showPage()
+        p.save()
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename=filename)
 
 
 def page_not_found(request, exception):
