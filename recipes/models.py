@@ -5,6 +5,11 @@ User = get_user_model()
 
 
 class Ingredient(models.Model):
+
+    class Meta:
+        verbose_name = 'ингредиент'
+        verbose_name_plural = 'ингредиенты'
+
     title = models.CharField(max_length=100,
                              verbose_name='Название ингредиента')
     unit = models.CharField(max_length=64, verbose_name='Единица измерения')
@@ -14,8 +19,13 @@ class Ingredient(models.Model):
 
 
 class Tag(models.Model):
+
+    class Meta:
+        verbose_name = 'тег'
+        verbose_name_plural = 'теги'
+
     title = models.CharField(max_length=15, verbose_name='Наименование тега')
-    slug = models.SlugField()
+    slug = models.SlugField(unique=True)
     checkbox_style = models.CharField(max_length=100)
 
     def __str__(self):
@@ -23,6 +33,12 @@ class Tag(models.Model):
 
 
 class Recipe(models.Model):
+
+    class Meta:
+        verbose_name = 'рецепт'
+        verbose_name_plural = 'рецепты'
+        ordering = ['-pub_date']
+
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                related_name='recipe_author',
                                verbose_name='Автор рецепта')
@@ -43,6 +59,11 @@ class Recipe(models.Model):
 
 
 class Amount(models.Model):
+
+    class Meta:
+        verbose_name = 'количество ингредиента'
+        verbose_name_plural = 'количества ингредиента'
+
     amount = models.IntegerField(verbose_name='Количество ингредиента')
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
                                    related_name='ingredient',
@@ -53,6 +74,12 @@ class Amount(models.Model):
 
 
 class Follow(models.Model):
+
+    class Meta:
+        verbose_name = 'подписка'
+        verbose_name_plural = 'подписки'
+        constraints = [models.UniqueConstraint(fields=['user', 'author'], name='unique follow')]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                              related_name='follower',
                              verbose_name='Пользователь')
@@ -62,6 +89,11 @@ class Follow(models.Model):
 
 
 class ShopList(models.Model):
+
+    class Meta:
+        verbose_name = 'список покупок'
+        verbose_name_plural = 'списки покупок'
+
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                              related_name='buyer',
                              verbose_name='Пользователь')

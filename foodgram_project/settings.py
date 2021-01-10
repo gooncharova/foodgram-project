@@ -61,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware'
 ]
 
 ROOT_URLCONF = 'foodgram_project.urls'
@@ -157,3 +158,8 @@ INTERNAL_IPS = [
 ]
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
+
+# PAGINATION_DEFAULT_PAGINATION = 6
+
+# APPEND_SLASH = False
+trailing_slash = False

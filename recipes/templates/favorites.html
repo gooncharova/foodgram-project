@@ -2,25 +2,25 @@
 {% block title %}Избранное{% endblock %}
 {% block content %}
   {% load static user_filters %}
-  {% include 'nav.html' with fav=True %}
+  {% include 'includes/nav.html' with fav=True %}
   {% csrf_token %}
     <link rel="stylesheet" href="{% static 'pages/index.css' %}">
     <main class="main container">
         <div class="main__header">
             <h1 class="main__title">Избранное</h1>
             <ul class="tags">
-                {% include "tags.html" %}
+                {% include "includes/tags.html" %}
             </ul>
         </div>
             <div class="card-list">
             {% for recipe in recipes %}
-              {% include "recipe_item.html" %}
+              {% include "includes/recipe_item.html" %}
             {% empty %}
               <h2> У Вас нет избранных рецептов. </h2>
             {% endfor %}
             </div>
             {% if page.has_other_pages %}
-              {% include "paginator.html" with items=page paginator=paginator%}
+              {% include "includes/paginator.html" with items=page paginator=paginator%}
             {% endif %}
         </div>
     </main>

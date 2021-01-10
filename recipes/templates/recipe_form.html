@@ -9,9 +9,9 @@
 {% block content %}
     {% load static user_filters recipe_feature %}
     {% if edit %}
-    {% include 'nav.html' %}
+    {% include 'includes/nav.html' %}
     {% else %}
-    {% include 'nav.html' with recipe_form=True %}
+    {% include 'includes/nav.html' with recipe_form=True %}
     {% endif %}
     <main class="main container">
     <link rel="stylesheet" href="{% static 'pages/form.css' %}">

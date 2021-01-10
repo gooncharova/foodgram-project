@@ -5,8 +5,8 @@ from django.contrib import admin
 from django.contrib.flatpages import views
 from django.urls import include, path
 
-handler404 = 'recipes.views.page_not_found'  # noqa
-handler500 = 'recipes.views.server_error'  # noqa
+handler404 = 'foodgram_project.views.page_not_found'  # noqa
+handler500 = 'foodgram_project.views.server_error'  # noqa
 
 urlpatterns = [
     path('auth/', include('users.urls')),
@@ -16,11 +16,11 @@ urlpatterns = [
 ]
 
 urlpatterns += [
-    path('about-us/', views.flatpage, {'url': '/about-us/'}, name='about'),
+    path('about/us/', views.flatpage, {'url': '/about/us/'}, name='about'),
     path('terms/', views.flatpage, {'url': '/terms/'}, name='terms'),
-    path('about-author/', views.flatpage, {'url': '/about-author/'},
+    path('about/author/', views.flatpage, {'url': '/about/author/'},
          name='about-author'),
-    path('about-spec/', views.flatpage,
+    path('about/spec/', views.flatpage,
          {'url': '/about-spec/'}, name='about-spec'),
     path('about/', include('django.contrib.flatpages.urls')),
 ]

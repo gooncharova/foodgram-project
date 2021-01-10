@@ -7,7 +7,7 @@ from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-
+from django.views.decorators.csrf import csrf_exempt
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -20,24 +20,28 @@ from .models import Amount, Follow, Ingredient, Recipe, ShopList, Tag, User
 
 def index(request):
     tags = filtering_tags(request)
-    recipe_list = Recipe.objects.all().order_by(
-        '-pub_date').distinct().filter(tag__in=tags)
+    all_recipes = (
+        Recipe.objects.all().distinct().filter(tag__in=tags)
+    )
     all_tags = Tag.objects.all()
-    paginator = Paginator(recipe_list, 6)
+    paginator = Paginator(all_recipes, 6)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    context = {'page': page, 'paginator': paginator,
-               'tags': all_tags, 'cache_timeout': settings.CACHE_TIME}
+    context = {
+        'page': page,
+        'paginator': paginator,
+        'tags': all_tags,
+        'cache_timeout': settings.CACHE_TIME,
+    }
     return render(request, 'index.html', context)
 
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     tags = filtering_tags(request)
-    recipe_list = author.recipe_author.order_by(
-        '-pub_date').distinct().filter(tag__in=tags)
+    all_recipes = author.recipe_author.distinct().filter(tag__in=tags)
     all_tags = Tag.objects.all()
-    paginator = Paginator(recipe_list, 6)
+    paginator = Paginator(all_recipes, 6)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     context = {'author': author, 'page': page, 'paginator': paginator,
@@ -55,22 +59,22 @@ def recipe_view(request, recipe_id):
 def get_ingredients(request):
     keyword = request.GET.get('query')
     if keyword:
-        ingredient_list = Ingredient.objects.filter(
-            title__istartswith=keyword).values_list()
-        data_notice = [{'title': x[1], 'dimension': x[2]}
-                       for x in ingredient_list]
+        all_ingredients = Ingredient.objects.filter(
+            title__istartswith=keyword).values('title', 'unit')
+        data_notice = [{'title': x['title'], 'dimension': x['unit']}
+                       for x in all_ingredients]
         return JsonResponse(data_notice, safe=False)
     else:
-        ingredient_list = None
+        all_ingredients = None
         return JsonResponse({'Found': 'None'})
 
 
 @login_required
 def new_recipe(request):
     if request.method == 'POST':
-        form = RecipeForm(request.POST or None, files=request.FILES or None)
-        tags = request.POST.getlist('tag')
-        print(tags)
+        form = RecipeForm(request.POST or None)
+        # tags = request.POST.getlist('tag')
+        # print(tags)
         validate_ingredients(request, form)
         if form.is_valid():
             recipe_save(request, form)
@@ -89,8 +93,7 @@ def recipe_edit(request, recipe_id):
     if request.method != 'POST':
         form = RecipeForm(instance=recipe)
     else:
-        form = RecipeForm(request.POST or None,
-                          files=request.FILES or None, instance=recipe)
+        form = RecipeForm(request.POST or None, instance=recipe)
         validate_ingredients(request, form)
         if form.is_valid():
             recipe.ingredients.remove()
@@ -115,8 +118,8 @@ def recipe_delete(request, username, recipe_id):
 
 @login_required
 def subscriptions(request):
-    following_list = request.user.follower.all()
-    context = {'following_list': following_list}
+    all_followings = request.user.follower.all()
+    context = {'all_followings': all_followings}
     return render(request, 'subscriptions_list.html', context)
 
 
@@ -125,14 +128,9 @@ def profile_follow(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         profile = get_object_or_404(User, id=data['id'])
-        following = Follow.objects.filter(
-            user=request.user).filter(author=profile)
         if request.user != profile:
-            if not following:
-                Follow.objects.create(user=request.user, author=profile)
-                return JsonResponse({'success': True})
-            elif following:
-                return redirect('index')
+            Follow.objects.get_or_create(user=request.user, author=profile)
+            return JsonResponse({'success': True})
         else:
             return redirect('index')
 
@@ -143,7 +141,7 @@ def profile_unfollow(request, id):
         profile = get_object_or_404(User, id=id)
         if profile == request.user:
             return redirect('index')
-        unfollow = Follow.objects.get(user=request.user, author=profile)
+        unfollow = get_object_or_404(Follow, user=request.user, author=profile)
         unfollow.delete()
     return JsonResponse({'success': True})
 
@@ -151,17 +149,16 @@ def profile_unfollow(request, id):
 @login_required
 def favorites(request):
     tags = filtering_tags(request)
-    recipe_list = Recipe.objects.filter(favorite=request.user).order_by(
-        '-pub_date').distinct().filter(tag__in=tags)
+    all_recipes = Recipe.objects.filter(favorite=request.user).distinct().filter(tag__in=tags)
     all_tags = Tag.objects.all()
-    context = {'tags': all_tags, 'recipes': recipe_list}
-    return render(request, 'favorites.html', context)
+    context = {"tags": all_tags, "recipes": all_recipes}
+    return render(request, "favorites.html", context)
 
 
 @login_required
 def add_favorites(request):
     data = json.loads(request.body)
-    recipe = Recipe.objects.get(id=data['id'])
+    recipe = get_object_or_404(Recipe, id=data['id'])
     recipe.favorite.add(request.user)
     return JsonResponse({'id': request.POST.get('id')})
 
@@ -176,19 +173,20 @@ def remove_favorites(request, id):
 
 @login_required
 def shopping_list(request):
-    shop_list = ShopList.objects.all()
-    context = {'shop_list': shop_list}
+    all_shoplists = ShopList.objects.all()
+    context = {'all_shoplists': all_shoplists}
     return render(request, 'shopping_list.html', context)
 
 
+@csrf_exempt
 @login_required
 def add_purchases(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        recipe = Recipe.objects.get(id=data['id'])
-        if not ShopList.objects.filter(user=request.user,
-                                       recipe=recipe).exists():
-            ShopList.objects.create(user=request.user, recipe=recipe)
+        recipe = get_object_or_404(Recipe, id=data['id'])
+        # if not ShopList.objects.filter(user=request.user,
+        #                                recipe=recipe).exists():
+        ShopList.objects.get_or_create(user=request.user, recipe=recipe)
     return JsonResponse({'Success': True})
 
 
@@ -196,13 +194,13 @@ def add_purchases(request):
 def remove_purchases(request, id):
     if request.method == 'DELETE':
         recipe = get_object_or_404(Recipe, id=id)
-        purchase = ShopList.objects.get(user=request.user, recipe=recipe)
+        purchase = get_object_or_404(ShopList, user=request.user, recipe=recipe)
         purchase.delete()
         return JsonResponse({'all': 'done'})
     elif request.method == 'GET':
         user = request.user
-        recipe = get_object_or_404(Recipe, id=id)
-        purchase = get_object_or_404(ShopList, user=user, recipe=recipe)
+        purchase = get_object_or_404(ShopList, user=user, recipe_id=id)
+        print(purchase)
         purchase.delete()
         return redirect('shopping_list')
 
@@ -211,17 +209,20 @@ def remove_purchases(request, id):
 def download_shopping_list_txt(request):
     filename = 'shoplist.txt'
     content = ''
-    users_recipe = ShopList.objects.filter(user=request.user)
-    recipe = [recipe.recipe for recipe in users_recipe]
+    users_recipe = ShopList.objects.filter(user=request.user).values('recipe_id')
+    # print(f'users_recipe = {users_recipe}')
+    # print('user_values = ', ShopList.objects.filter(user=request.user).values())
+    # recipe = [recipe.recipe for recipe in users_recipe]
+    # print(f'recipe = {recipe}')
     amount = Amount.objects.filter(
-        recipe__in=recipe
+        recipe__in=users_recipe
     ).values(
         'ingredient__title', 'ingredient__unit'
     ).annotate(
         Sum('amount')
     )
-    for a in amount:
-        title, dimension, amount_sum = a.values()
+    for item in amount:
+        title, dimension, amount_sum = item.values()
         content = content + f'{title} {amount_sum} {dimension}\n'
     response = HttpResponse(content, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename={filename}'
@@ -235,11 +236,14 @@ def download_shopping_list_pdf(request):
     for item in shoplist:
         recipe = get_object_or_404(Recipe, id=item['recipe_id'])
         for i in recipe.recipe_amount.all():
-            if i.ingredient.title not in dict_pdf:
-                dict_pdf[i.ingredient.title] = [
-                    int(i.amount), i.ingredient.unit]
-            else:
-                dict_pdf[i.ingredient.title][0] += int(i.quantity)
+            # print(dict_pdf[i.ingredient.title])
+            # dict_pdf[i.ingredient.title] = [int(i.amount), i.ingredient.unit]
+            dict_pdf[i.ingredient.title] = [dict_pdf.get(i.ingredient.title, 0) + int(i.amount), i.ingredient.unit]
+            # if i.ingredient.title not in dict_pdf:
+            #     dict_pdf[i.ingredient.title] = [
+            #         int(i.amount), i.ingredient.unit]
+            # else:
+            #     dict_pdf[i.ingredient.title][0] += int(i.quantity)
     if not shoplist.exists():
         return redirect('shopping_list')
     else:
@@ -266,12 +270,3 @@ def download_shopping_list_pdf(request):
         p.save()
         buffer.seek(0)
         return FileResponse(buffer, as_attachment=True, filename=filename)
-
-
-def page_not_found(request, exception):
-    context = {'path': request.path}
-    return render(request, 'misc/404.html', context, status=404)
-
-
-def server_error(request):
-    return render(request, 'misc/500.html', status=500)

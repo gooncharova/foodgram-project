@@ -2,7 +2,7 @@
 {% block title %}{{ recipe.title }}{% endblock %}
 {% block content %}
   {% load static recipe_feature %}
-  {% include 'nav.html' with index=True %}
+  {% include 'includes/nav.html' with index=True %}
   {% csrf_token %}
     <main class="main container">
       <link rel="stylesheet" href="{% static 'pages/single.css' %}">
