@@ -8,6 +8,9 @@ from django.db.models import Sum
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
+
+from foodgram_project.settings import per_page_paginator
+
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -24,7 +27,7 @@ def index(request):
         Recipe.objects.all().distinct().filter(tag__in=tags)
     )
     all_tags = Tag.objects.all()
-    paginator = Paginator(all_recipes, 6)
+    paginator = Paginator(all_recipes, per_page_paginator)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     context = {
@@ -39,9 +42,9 @@ def index(request):
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     tags = filtering_tags(request)
-    all_recipes = author.recipe_author.distinct().filter(tag__in=tags)
+    all_recipes = author.recipes.distinct().filter(tag__in=tags)
     all_tags = Tag.objects.all()
-    paginator = Paginator(all_recipes, 6)
+    paginator = Paginator(all_recipes, per_page_paginator)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     context = {'author': author, 'page': page, 'paginator': paginator,
@@ -71,16 +74,12 @@ def get_ingredients(request):
 
 @login_required
 def new_recipe(request):
+    form = RecipeForm(request.POST or None, files=request.FILES or None)
     if request.method == 'POST':
-        form = RecipeForm(request.POST or None)
-        # tags = request.POST.getlist('tag')
-        # print(tags)
         validate_ingredients(request, form)
-        if form.is_valid():
-            recipe_save(request, form)
-            return redirect('index')
-    else:
-        form = RecipeForm(request.POST or None)
+    if form.is_valid():
+        recipe_save(request, form)
+        return redirect('index')
     context = {'form': form}
     return render(request, 'recipe_form.html', context)
 
@@ -90,16 +89,14 @@ def recipe_edit(request, recipe_id):
     recipe = get_object_or_404(Recipe, pk=recipe_id)
     if recipe.author != request.user:
         return redirect('recipe_view', recipe_id=recipe_id)
-    if request.method != 'POST':
-        form = RecipeForm(instance=recipe)
-    else:
-        form = RecipeForm(request.POST or None, instance=recipe)
+    form = RecipeForm(request.POST or None, files=request.FILES or None, instance=recipe)
+    if request.method == 'POST':
         validate_ingredients(request, form)
-        if form.is_valid():
-            recipe.ingredients.remove()
-            recipe.recipe_amount.all().delete()
-            recipe_save(request, form)
-            return redirect('recipe', recipe_id)
+    if form.is_valid():
+        recipe.ingredients.remove()
+        recipe.amount.all().delete()
+        recipe_save(request, form)
+        return redirect('recipe', recipe_id)
     recipe_tags = get_recipe_tags(recipe)
     context = {'form': form, 'recipe': recipe, 'recipe_tags': recipe_tags,
                'edit': True}
@@ -184,8 +181,6 @@ def add_purchases(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         recipe = get_object_or_404(Recipe, id=data['id'])
-        # if not ShopList.objects.filter(user=request.user,
-        #                                recipe=recipe).exists():
         ShopList.objects.get_or_create(user=request.user, recipe=recipe)
     return JsonResponse({'Success': True})
 
@@ -209,21 +204,19 @@ def remove_purchases(request, id):
 def download_shopping_list_txt(request):
     filename = 'shoplist.txt'
     content = ''
-    users_recipe = ShopList.objects.filter(user=request.user).values('recipe_id')
-    # print(f'users_recipe = {users_recipe}')
-    # print('user_values = ', ShopList.objects.filter(user=request.user).values())
-    # recipe = [recipe.recipe for recipe in users_recipe]
-    # print(f'recipe = {recipe}')
+    shoplist_recipe = ShopList.objects.filter(user=request.user).values('recipe_id')
     amount = Amount.objects.filter(
-        recipe__in=users_recipe
+        recipe__in=shoplist_recipe
     ).values(
         'ingredient__title', 'ingredient__unit'
     ).annotate(
         Sum('amount')
     )
     for item in amount:
-        title, dimension, amount_sum = item.values()
-        content = content + f'{title} {amount_sum} {dimension}\n'
+        title = item['ingredient__title']
+        unit = item['ingredient__unit'] 
+        amount_sum = item['amount__sum']
+        content = content + f'{title} {amount_sum} {unit}\n'
     response = HttpResponse(content, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename={filename}'
     return response
@@ -231,20 +224,22 @@ def download_shopping_list_txt(request):
 
 def download_shopping_list_pdf(request):
     filename = 'shoplist.pdf'
-    shoplist = ShopList.objects.filter(user=request.user).values()
-    dict_pdf = {}
-    for item in shoplist:
-        recipe = get_object_or_404(Recipe, id=item['recipe_id'])
-        for i in recipe.recipe_amount.all():
-            # print(dict_pdf[i.ingredient.title])
-            # dict_pdf[i.ingredient.title] = [int(i.amount), i.ingredient.unit]
-            dict_pdf[i.ingredient.title] = [dict_pdf.get(i.ingredient.title, 0) + int(i.amount), i.ingredient.unit]
-            # if i.ingredient.title not in dict_pdf:
-            #     dict_pdf[i.ingredient.title] = [
-            #         int(i.amount), i.ingredient.unit]
-            # else:
-            #     dict_pdf[i.ingredient.title][0] += int(i.quantity)
-    if not shoplist.exists():
+    shoplist_recipe = ShopList.objects.filter(user=request.user).values('recipe_id')
+    amount = Amount.objects.filter(
+        recipe__in=shoplist_recipe
+    ).values(
+        'ingredient__title', 'ingredient__unit'
+    ).annotate(
+        Sum('amount')
+    )
+    shoplist_for_pdf = {}
+    for item in amount:
+        title = item['ingredient__title']
+        unit = item['ingredient__unit'] 
+        amount_sum = item['amount__sum']
+        shoplist_for_pdf[title] = [amount_sum, unit]
+    print(shoplist_for_pdf)
+    if not shoplist_recipe.exists():
         return redirect('shopping_list')
     else:
         pdfmetrics.registerFont(TTFont('Font', 'font.ttf'))
@@ -256,10 +251,10 @@ def download_shopping_list_pdf(request):
         step_down = 20
         p.drawString(150, 800, 'Список покупок')
         p.setFont('Font', 20)
-        for i in dict_pdf.keys():
-            title = i
-            amount = str(dict_pdf[i][0])
-            unit = dict_pdf[i][1]
+        for key in shoplist_for_pdf.keys():
+            title = key
+            amount = str(shoplist_for_pdf[key][0])
+            unit = shoplist_for_pdf[key][1]
             p.drawString(canvas_x, canvas_y, title +
                          '   '+amount+'   '+unit)
             canvas_y -= step_down

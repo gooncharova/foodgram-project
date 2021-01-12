@@ -40,7 +40,6 @@ def validate_ingredients(request, form):
     for item in request.POST.items():
         if 'nameIngredient' in item[0]:
             return None
-    # print('error')
     return form.add_error(
         'image',
         'Необходимо указать хотя бы один ингредиент для рецепта')

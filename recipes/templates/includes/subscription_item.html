@@ -5,7 +5,7 @@
     </div>
     <div class="card-user__body">
         <ul class="card-user__items">
-            {% for recipe in author.recipe_author.all|slice:":3" %}      
+            {% for recipe in author.recipes.all|slice:":3" %}      
               <li class="card-user__item">
                 <div class="recipe">
                     <img src="{{ recipe.image.url }}" alt="Фото рецепта" class="recipe__image">
