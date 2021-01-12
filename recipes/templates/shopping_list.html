@@ -2,7 +2,7 @@
 {% block title %}Список покупок{% endblock %}
 {% block content %}
   {% load static user_filters %}
-  {% include 'nav.html' with shoplist=True %}
+  {% include 'includes/nav.html' with shoplist=True %}
   {% csrf_token %}
   <link rel="stylesheet" href="{% static 'pages/shopList.css' %}">
   <main class="main container">
@@ -11,7 +11,7 @@
     </div>
     <div class="card-list card-list_column">
         <ul class="shopping-list">
-            {% for obj in shop_list %}
+            {% for obj in all_shoplists %}
               <li class="shopping-list__item" data-id="{{ obj.recipe.id }}">
                 <div class="recipe recipe_reverse">
                     <img src="{{ obj.recipe.image.url }}" alt="{{ obj.recipe.title }}" class="recipe__image recipe__image_big">

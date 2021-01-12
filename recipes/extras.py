@@ -1,12 +1,18 @@
+from django.shortcuts import get_object_or_404
+
 from .models import Amount, Ingredient, Tag
+
+tag_1 = 'breakfast'
+tag_2 = 'lunch'
+tag_3 = 'dinner'
 
 
 def filtering_tags(request):
     if 'filters' in request.GET:
-        list_of_tags = request.GET.getlist('filters')
+        get_tags = request.GET.getlist('filters')
     else:
-        list_of_tags = ['breakfast', 'lunch', 'dinner']
-    filtered_tags = Tag.objects.filter(slug__in=list_of_tags)
+        get_tags = [tag_1, tag_2, tag_3]
+    filtered_tags = Tag.objects.filter(slug__in=get_tags)
     return filtered_tags
 
 
@@ -15,7 +21,6 @@ def recipe_save(request, form):
     recipe.author = request.user
     recipe.save()
     data = []
-    print(request.POST.items)
     for item in request.POST.items():
         if 'nameIngredient' in item[0]:
             title = item[1]
@@ -23,7 +28,7 @@ def recipe_save(request, form):
             amount = item[1]
         if 'unitsIngredient' in item[0]:
             unit = item[1]
-            ing = Ingredient.objects.get(title=title, unit=unit)
+            ing = get_object_or_404(Ingredient, title=title, unit=unit)
             data.append(
                 Amount(ingredient=ing, recipe=recipe, amount=amount)
             )
@@ -35,15 +40,12 @@ def validate_ingredients(request, form):
     for item in request.POST.items():
         if 'nameIngredient' in item[0]:
             return None
-    print('error')
     return form.add_error(
         'image',
         'Необходимо указать хотя бы один ингредиент для рецепта')
 
 
 def get_recipe_tags(recipe):
-    tag_dict = recipe.tag.all().values()
-    tag_visible = []
-    for item in tag_dict:
-        tag_visible.append(item['title'])
+    tag_visible = recipe.tag.all().values_list('title')
+    tag_visible = [item for x in tag_visible for item in x]
     return tag_visible

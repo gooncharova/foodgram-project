@@ -41,15 +41,19 @@ def shopping_count(request, user_id):
 
 @register.filter(name='recipe_count')
 def recipe_count(request, author):
-    author_recipe_count = (Recipe.objects.filter(author=author).count()-3)
+    author_recipe_count = Recipe.objects.filter(author=author).count() - 3
     if author_recipe_count <= 0:
         return None
     if author_recipe_count % 10 == 1:
-        return f'{author_recipe_count} рецепт'
-    if author_recipe_count % 10 in [2, 3, 4] and author_recipe_count not in [12, 13, 14]:
-        return f'{author_recipe_count} рецептa'
+        return f"{author_recipe_count} рецепт"
+    if author_recipe_count % 10 in [2, 3, 4] and author_recipe_count not in [
+        12,
+        13,
+        14,
+    ]:
+        return f"{author_recipe_count} рецептa"
     else:
-        return f'{author_recipe_count} рецептов'
+        return f"{author_recipe_count} рецептов"
 
 
 @register.filter(name='tag_colour')
