@@ -89,7 +89,8 @@ def recipe_edit(request, recipe_id):
     recipe = get_object_or_404(Recipe, pk=recipe_id)
     if recipe.author != request.user:
         return redirect('recipe_view', recipe_id=recipe_id)
-    form = RecipeForm(request.POST or None, files=request.FILES or None, instance=recipe)
+    form = RecipeForm(request.POST or None,
+                      files=request.FILES or None, instance=recipe)
     if request.method == 'POST':
         validate_ingredients(request, form)
     if form.is_valid():
@@ -146,7 +147,8 @@ def profile_unfollow(request, id):
 @login_required
 def favorites(request):
     tags = filtering_tags(request)
-    all_recipes = Recipe.objects.filter(favorite=request.user).distinct().filter(tag__in=tags)
+    all_recipes = Recipe.objects.filter(
+        favorite=request.user).distinct().filter(tag__in=tags)
     all_tags = Tag.objects.all()
     context = {"tags": all_tags, "recipes": all_recipes}
     return render(request, "favorites.html", context)
@@ -189,13 +191,13 @@ def add_purchases(request):
 def remove_purchases(request, id):
     if request.method == 'DELETE':
         recipe = get_object_or_404(Recipe, id=id)
-        purchase = get_object_or_404(ShopList, user=request.user, recipe=recipe)
+        purchase = get_object_or_404(
+            ShopList, user=request.user, recipe=recipe)
         purchase.delete()
         return JsonResponse({'all': 'done'})
     elif request.method == 'GET':
         user = request.user
         purchase = get_object_or_404(ShopList, user=user, recipe_id=id)
-        print(purchase)
         purchase.delete()
         return redirect('shopping_list')
 
@@ -204,7 +206,8 @@ def remove_purchases(request, id):
 def download_shopping_list_txt(request):
     filename = 'shoplist.txt'
     content = ''
-    shoplist_recipe = ShopList.objects.filter(user=request.user).values('recipe_id')
+    shoplist_recipe = ShopList.objects.filter(
+        user=request.user).values('recipe_id')
     amount = Amount.objects.filter(
         recipe__in=shoplist_recipe
     ).values(
@@ -214,7 +217,7 @@ def download_shopping_list_txt(request):
     )
     for item in amount:
         title = item['ingredient__title']
-        unit = item['ingredient__unit'] 
+        unit = item['ingredient__unit']
         amount_sum = item['amount__sum']
         content = content + f'{title} {amount_sum} {unit}\n'
     response = HttpResponse(content, content_type='text/plain')
@@ -224,7 +227,8 @@ def download_shopping_list_txt(request):
 
 def download_shopping_list_pdf(request):
     filename = 'shoplist.pdf'
-    shoplist_recipe = ShopList.objects.filter(user=request.user).values('recipe_id')
+    shoplist_recipe = ShopList.objects.filter(
+        user=request.user).values('recipe_id')
     amount = Amount.objects.filter(
         recipe__in=shoplist_recipe
     ).values(
@@ -235,10 +239,9 @@ def download_shopping_list_pdf(request):
     shoplist_for_pdf = {}
     for item in amount:
         title = item['ingredient__title']
-        unit = item['ingredient__unit'] 
+        unit = item['ingredient__unit']
         amount_sum = item['amount__sum']
         shoplist_for_pdf[title] = [amount_sum, unit]
-    print(shoplist_for_pdf)
     if not shoplist_recipe.exists():
         return redirect('shopping_list')
     else:

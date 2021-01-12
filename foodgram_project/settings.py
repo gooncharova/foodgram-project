@@ -160,5 +160,3 @@ INTERNAL_IPS = [
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 
 per_page_paginator = 6
-
-# APPEND_SLASH = False
