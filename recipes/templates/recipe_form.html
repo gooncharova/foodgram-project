@@ -42,7 +42,9 @@
                           <div class="tags__item">
                             <input type="checkbox" id="{{ choice.id_for_label }}" name="tag" value="{{ choice.choice_label|tag_id }}"
                             class="tags__checkbox tags__checkbox_style_{{ choice.choice_label|tag_colour }}"
-                            {% if choice.choice_label in recipe_tags %} checked {% endif %}> <label for="{{ choice.id_for_label }}"
+                            {% for item in recipe_tags %} 
+                            {% if choice.choice_label in item %} checked {% endif %} 
+                            {% endfor %}> <label for="{{ choice.id_for_label }}"
                             class="tags__label">{{ choice.choice_label }}</label>
                           </div>
                         {% endfor %}

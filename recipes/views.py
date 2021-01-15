@@ -7,9 +7,7 @@ from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.csrf import csrf_exempt
-
-from foodgram_project.settings import per_page_paginator
+from django.views.decorators.http import require_POST, require_http_methods
 
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -27,7 +25,7 @@ def index(request):
         Recipe.objects.all().distinct().filter(tag__in=tags)
     )
     all_tags = Tag.objects.all()
-    paginator = Paginator(all_recipes, per_page_paginator)
+    paginator = Paginator(all_recipes, settings.PER_PAGE_PAGINATOR)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     context = {
@@ -44,7 +42,7 @@ def profile(request, username):
     tags = filtering_tags(request)
     all_recipes = author.recipes.distinct().filter(tag__in=tags)
     all_tags = Tag.objects.all()
-    paginator = Paginator(all_recipes, per_page_paginator)
+    paginator = Paginator(all_recipes, settings.PER_PAGE_PAGINATOR)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     context = {'author': author, 'page': page, 'paginator': paginator,
@@ -75,8 +73,7 @@ def get_ingredients(request):
 @login_required
 def new_recipe(request):
     form = RecipeForm(request.POST or None, files=request.FILES or None)
-    if request.method == 'POST':
-        validate_ingredients(request, form)
+    validate_ingredients(request, form)
     if form.is_valid():
         recipe_save(request, form)
         return redirect('index')
@@ -91,8 +88,7 @@ def recipe_edit(request, recipe_id):
         return redirect('recipe_view', recipe_id=recipe_id)
     form = RecipeForm(request.POST or None,
                       files=request.FILES or None, instance=recipe)
-    if request.method == 'POST':
-        validate_ingredients(request, form)
+    validate_ingredients(request, form)
     if form.is_valid():
         recipe.ingredients.remove()
         recipe.amount.all().delete()
@@ -122,25 +118,25 @@ def subscriptions(request):
 
 
 @login_required
+@require_POST
 def profile_follow(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        profile = get_object_or_404(User, id=data['id'])
-        if request.user != profile:
-            Follow.objects.get_or_create(user=request.user, author=profile)
-            return JsonResponse({'success': True})
-        else:
-            return redirect('index')
+    data = json.loads(request.body)
+    profile = get_object_or_404(User, id=data['id'])
+    if request.user != profile:
+        Follow.objects.get_or_create(user=request.user, author=profile)
+        return JsonResponse({'success': True})
+    else:
+        return redirect('index')
 
 
 @login_required
+@require_http_methods(['DELETE'])
 def profile_unfollow(request, id):
-    if request.method == 'DELETE':
-        profile = get_object_or_404(User, id=id)
-        if profile == request.user:
-            return redirect('index')
-        unfollow = get_object_or_404(Follow, user=request.user, author=profile)
-        unfollow.delete()
+    profile = get_object_or_404(User, id=id)
+    if profile == request.user:
+        return redirect('index')
+    unfollow = get_object_or_404(Follow, user=request.user, author=profile)
+    unfollow.delete()
     return JsonResponse({'success': True})
 
 
@@ -150,8 +146,8 @@ def favorites(request):
     all_recipes = Recipe.objects.filter(
         favorite=request.user).distinct().filter(tag__in=tags)
     all_tags = Tag.objects.all()
-    context = {"tags": all_tags, "recipes": all_recipes}
-    return render(request, "favorites.html", context)
+    context = {'tags': all_tags, 'recipes': all_recipes}
+    return render(request, 'favorites.html', context)
 
 
 @login_required
@@ -177,17 +173,17 @@ def shopping_list(request):
     return render(request, 'shopping_list.html', context)
 
 
-@csrf_exempt
 @login_required
+@require_POST
 def add_purchases(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        recipe = get_object_or_404(Recipe, id=data['id'])
-        ShopList.objects.get_or_create(user=request.user, recipe=recipe)
+    data = json.loads(request.body)
+    recipe = get_object_or_404(Recipe, id=data['id'])
+    ShopList.objects.get_or_create(user=request.user, recipe=recipe)
     return JsonResponse({'Success': True})
 
 
 @login_required
+@require_http_methods(['GET', 'DELETE'])
 def remove_purchases(request, id):
     if request.method == 'DELETE':
         recipe = get_object_or_404(Recipe, id=id)

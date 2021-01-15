@@ -13,6 +13,7 @@ class TagsFilter(forms.Form):
 
 
 class RecipeForm(forms.ModelForm):
+
     class Meta:
         model = Recipe
         fields = ('title', 'tag', 'cook_time', 'text', 'image')

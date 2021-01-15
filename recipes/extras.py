@@ -2,16 +2,16 @@ from django.shortcuts import get_object_or_404
 
 from .models import Amount, Ingredient, Tag
 
-tag_1 = 'breakfast'
-tag_2 = 'lunch'
-tag_3 = 'dinner'
+BREAKFAST_TAG = 'breakfast'
+LUNCH_TAG = 'lunch'
+DINNER_TAG = 'dinner'
 
 
 def filtering_tags(request):
     if 'filters' in request.GET:
         get_tags = request.GET.getlist('filters')
     else:
-        get_tags = [tag_1, tag_2, tag_3]
+        get_tags = [BREAKFAST_TAG, LUNCH_TAG, DINNER_TAG]
     filtered_tags = Tag.objects.filter(slug__in=get_tags)
     return filtered_tags
 
@@ -37,15 +37,15 @@ def recipe_save(request, form):
 
 
 def validate_ingredients(request, form):
-    for item in request.POST.items():
-        if 'nameIngredient' in item[0]:
-            return None
-    return form.add_error(
-        'image',
-        'Необходимо указать хотя бы один ингредиент для рецепта')
+    if request.method == 'POST':
+        for item in request.POST.items():
+            if 'nameIngredient' in item[0]:
+                return None
+        return form.add_error(
+            'image',
+            'Необходимо указать хотя бы один ингредиент для рецепта')
 
 
 def get_recipe_tags(recipe):
-    tag_visible = recipe.tag.all().values_list('title')
-    tag_visible = [item for x in tag_visible for item in x]
+    tag_visible = list(recipe.tag.all().values_list('title'))
     return tag_visible
