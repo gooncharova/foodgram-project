@@ -1,5 +1,10 @@
 version: '3.7'
 
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+
 services:
   db:
     image: postgres:12.4
@@ -13,29 +18,22 @@ services:
     restart: always
     volumes:
       - static_volume:/code/static
-      - media_volume:/media
+      - media_volume:/code/media
+    ports:
+      - "8000:8000"
     depends_on:
       - db
     env_file:
       - ./.env
 
   nginx:
-    image: nginx:1.19.5-alpine
-    depends_on:
-      - web
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    volumes:
+      - static_volume:/code/static
+      - media_volume:/code/media
     ports:
       - 80:80
-    volumes:
-      - ./nginx:/etc/nginx/conf.d
-      - static_volume:/code/static
-      - media_volume:/media
-    restart: unless-stopped
-
-  dockerhub:
-    build: .
-    image: gooncharova2/foodgram:v20.01.2021
-
-volumes:
-  postgres_data:
-  static_volume:
-  media_volume:
+    depends_on:
+      - web

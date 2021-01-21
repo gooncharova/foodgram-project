@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/3.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 '''
-
 import os
 
 from dotenv import load_dotenv
@@ -32,8 +31,13 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['178.154.252.137', 'localhost',
-                 'foodgram-project.ml', 'www.foodgram-project.ml']
+ALLOWED_HOSTS = ['84.201.173.17',
+                 'localhost',
+                 '127.0.0.1',
+                 'foodgram-project.ml',
+                 'www.foodgram-project.ml',
+                 'testserver',
+                 '[::1]', ]
 
 
 # Application definition
@@ -91,7 +95,7 @@ WSGI_APPLICATION = 'foodgram_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.environ.get('DB_ENGINE'),
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DB_NAME'),
         'USER': os.environ.get('POSTGRES_USER'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
