@@ -34,8 +34,8 @@ DEBUG = True
 ALLOWED_HOSTS = ['84.201.173.17',
                  'localhost',
                  '127.0.0.1',
-                 'foodgram-project.ml',
-                 'www.foodgram-project.ml',
+                 'foodgram-gooncharova.ml',
+                 'www.foodgram-gooncharova.ml',
                  'testserver',
                  '[::1]', ]
 

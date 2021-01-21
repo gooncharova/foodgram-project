@@ -19,21 +19,19 @@ services:
     volumes:
       - static_volume:/code/static
       - media_volume:/code/media
-    ports:
-      - "8000:8000"
     depends_on:
       - db
     env_file:
       - ./.env
 
   nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    image: nginx:1.19.5-alpine
+    depends_on: 
+      - web
+    ports: 
+      - 80:80
     volumes:
+      - ./nginx:/etc/nginx/conf.d
       - static_volume:/code/static
       - media_volume:/code/media
-    ports:
-      - 80:80
-    depends_on:
-      - web
+    restart: unless-stopped
