@@ -67,7 +67,7 @@ class Amount(models.Model):
 
     class Meta:
         verbose_name = 'количество ингредиента'
-        verbose_name_plural = 'количества ингредиента'
+        verbose_name_plural = 'количество ингредиентов'
 
 
 class Follow(models.Model):
