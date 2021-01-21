@@ -133,8 +133,7 @@ dmypy.json
 vscode/
 .vscode/
 
-static/
-recep/static/
+
 media/
 
 .db.env
