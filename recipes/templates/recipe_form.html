@@ -67,7 +67,7 @@
                     </div>
                     <div class="form__field-group-ingredientes-container">
                     {% if edit %}
-                      {% for ing in recipe.recipe_amount.all %}
+                      {% for ing in recipe.amount.all %}
                         <div class="form__field-item-ingredient" id="ing_{{ forloop.counter }}">
                     
                         <span> {{ ing.ingredient.title }} {% if ing.amount > 0 %}{{ ing.amount|floatformat:-1 }}{% endif %}{{ ing.ingredient.unit }}</span>
