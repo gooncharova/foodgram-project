@@ -56,3 +56,7 @@ docker-compose exec web python manage.py makemigrations
 ```
 docker-compose exec web python manage.py migrate
 ```
+
+## Планируемые изменения
+
+- Получение и настройка SSL-сертификата. Прошу извинить за такое дикое неудобство(
