@@ -44,6 +44,12 @@ docker-compose exec web python manage.py createsuperuser
 docker-compose exec web python manage.py loaddata
 ```
 
+Для заполнения базы ингредиентами:
+
+```
+docker-compose exec web python manage.py load_ingredients_data
+```
+
 ### Другие полезные команды:
 
 Создать миграцию (сгенерировать команды SQL):
