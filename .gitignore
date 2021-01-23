@@ -136,6 +136,8 @@ vscode/
 
 media/
 static/
+.static/
+.static
 
 .db.env
 .git/*
