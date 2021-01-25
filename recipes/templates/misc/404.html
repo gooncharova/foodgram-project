@@ -1,15 +1,18 @@
 {% extends "base.html" %}
 {% block title %} Ошибка 404 {% endblock %}
 {% block content %}
-
-    <main role="main" class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h1>Ошибка 404</h1>
-                <p class="lead">Страница <code>{{ path }}</code> не найдена</p>
-                <p class="lead"><a href="{% url 'index' %}">Вернуться на главную</a></p>
-            </div>
+{% load static user_filters %}
+{% include 'includes/nav.html' %}
+  <main class="main container">
+  <link rel="stylesheet" href="{% static 'pages/index.css' %}">
+        <div class="main__header">
+          <h1 class="main__title">Ошибка 404</h1>
+        </div>
+        <div class="card-list">
+          <h2>Упс, похоже, что страница <code>{{ path }}</code> не найдена
+          <br><br><a href="{% url 'index' %}">Вернуться на главную</a></h2>
         </div>
     </main>
-
+        
+  
 {% endblock %}

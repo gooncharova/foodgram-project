@@ -1,15 +1,18 @@
 {% extends "base.html" %}
 {% block title %} Ошибка 500 {% endblock %}
 {% block content %}
-
-    <main role="main" class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h1>Ошибка 500</h1>
-                <p class="lead">Ошибка на сервере, попробуйте обновить страницу или обратиться позже</p>
-                <p class="lead"><a href="{% url 'index' %}">Вернуться на главную</a></p>
-            </div>
+{% load static user_filters %}
+{% include 'includes/nav.html' %}
+  <main class="main container">
+  <link rel="stylesheet" href="{% static 'pages/index.css' %}">
+        <div class="main__header">
+          <h1 class="main__title">Ошибка 500</h1>
+        </div>
+        <div class="card-list">
+          <h2>Ошибка на сервере, попробуйте обновить страницу или обратиться позже
+          <br><br><a href="{% url 'index' %}">Вернуться на главную</a></h2>
         </div>
     </main>
-
+        
+  
 {% endblock %}

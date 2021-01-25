@@ -48,9 +48,13 @@ class FollowAdmin(admin.ModelAdmin):
     search_fields = ('user',)
 
 
+class ShopListAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'user', 'recipe')
+
+
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Amount, AmountAdmin)
 admin.site.register(Follow, FollowAdmin)
-admin.site.register(ShopList)
+admin.site.register(ShopList, ShopListAdmin)

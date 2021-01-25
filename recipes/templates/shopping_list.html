@@ -11,7 +11,7 @@
     </div>
     <div class="card-list card-list_column">
         <ul class="shopping-list">
-            {% for obj in all_shoplists %}
+            {% for obj in user_shoplist %}
               <li class="shopping-list__item" data-id="{{ obj.recipe.id }}">
                 <div class="recipe recipe_reverse">
                     <img src="{{ obj.recipe.image.url }}" alt="{{ obj.recipe.title }}" class="recipe__image recipe__image_big">

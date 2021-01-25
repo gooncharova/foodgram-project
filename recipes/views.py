@@ -168,8 +168,8 @@ def remove_favorites(request, id):
 
 @login_required
 def shopping_list(request):
-    all_shoplists = ShopList.objects.all()
-    context = {'all_shoplists': all_shoplists}
+    user_shoplist = ShopList.objects.filter(user=request.user)
+    context = {'user_shoplist': user_shoplist}
     return render(request, 'shopping_list.html', context)
 
 
